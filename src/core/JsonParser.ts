@@ -739,9 +739,6 @@ export class JsonParser<T> {
 
         instance = ('_method' in jsonCreator && jsonCreator._method) ?
           (method as Function)(...args) : new (method as ObjectConstructor)(...args);
-        if (instance != null && !context.features.deserialization.MAP_UNDEFINED_TO_NULL) {
-          Object.keys(instance).forEach(key => instance[key] === undefined && delete instance[key]);
-        }
       } else if ('mode' in jsonCreator) {
         switch (jsonCreator.mode) {
         case JsonCreatorMode.DELEGATING:
@@ -896,9 +893,6 @@ export class JsonParser<T> {
       if (typeof jsonVirtualProperty._descriptor.value === 'function') {
         parsedValue = this.parseMethodArguments(key, null, obj, parent, context, globalContext, [jsonVirtualProperty.value], false)
           .args[0];
-        if (parsedValue != null && !context.features.deserialization.MAP_UNDEFINED_TO_NULL) {
-          Object.keys(parsedValue).forEach(k => parsedValue[k] === undefined && delete parsedValue[k]);
-        }
       } else {
         parsedValue = this.parseJsonClassType(context, globalContext, obj, key, parent);
       }
