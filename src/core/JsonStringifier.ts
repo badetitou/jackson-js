@@ -312,7 +312,7 @@ export class JsonStringifier<T> {
     value = this.stringifyJsonSerializeClass(value, context);
 
     if (value == null && isConstructorPrimitiveType(context.mainCreator[0])) {
-      value = this.getDefaultValue(context);
+      value = this.getDefaultValue(context, value);
     }
 
     if (value != null && value.constructor === Number && isNaN(value as number) && context.features.serialization.WRITE_NAN_AS_ZERO) {
@@ -558,9 +558,10 @@ export class JsonStringifier<T> {
   /**
    *
    * @param context
+   * @param value
    */
-  private getDefaultValue(context: JsonStringifierTransformerContext): any | null {
-    let defaultValue = null;
+  private getDefaultValue(context: JsonStringifierTransformerContext, value: any): any | null {
+    let defaultValue = value;
     const currentMainCreator = context.mainCreator[0];
     if (currentMainCreator === String &&
       (context.features.serialization.SET_DEFAULT_VALUE_FOR_PRIMITIVES_ON_NULL ||

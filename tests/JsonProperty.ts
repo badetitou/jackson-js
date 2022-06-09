@@ -24,6 +24,98 @@ test('@JsonProperty with value', t => {
   t.deepEqual(JSON.parse(jsonData), JSON.parse('{"id":1,"empName":"John"}'));
 });
 
+test('@JsonProperty with undefined primitive value', t => {
+  class Employee {
+    @JsonProperty() @JsonClassType({type: () => [Number]})
+    id: number;
+    @JsonProperty({value: 'empName'}) @JsonClassType({type: () => [String]})
+    name: string;
+
+    constructor(id: number, name: string) {
+      this.id = id;
+      this.name = name;
+    }
+  }
+
+  const employee = new Employee(undefined, 'John');
+  const objectMapper = new ObjectMapper();
+
+  const jsonData = objectMapper.stringify<Employee>(employee);
+  t.deepEqual(JSON.parse(jsonData), JSON.parse('{"empName":"John"}'));
+});
+
+test('@JsonProperty with null primitive value', t => {
+  class Employee {
+    @JsonProperty() @JsonClassType({type: () => [Number]})
+    id: number;
+    @JsonProperty({value: 'empName'}) @JsonClassType({type: () => [String]})
+    name: string;
+
+    constructor(id: number, name: string) {
+      this.id = id;
+      this.name = name;
+    }
+  }
+
+  const employee = new Employee(null, 'John');
+  const objectMapper = new ObjectMapper();
+
+  const jsonData = objectMapper.stringify<Employee>(employee);
+  t.deepEqual(JSON.parse(jsonData), JSON.parse('{"id":null,"empName":"John"}'));
+});
+
+test('@JsonProperty with undefined created value', t => {
+
+  class Other {}
+
+  class Employee {
+    @JsonProperty() @JsonClassType({type: () => [Number]})
+    id: number;
+    @JsonProperty({value: 'empName'}) @JsonClassType({type: () => [String]})
+    name: string;
+    @JsonProperty() @JsonClassType({type: () => [Other]})
+    other: Other | null;
+
+    constructor(id: number, name: string, other: Other | null) {
+      this.id = id;
+      this.name = name;
+      this.other = other;
+    }
+  }
+
+  const employee = new Employee(1, 'John', undefined);
+  const objectMapper = new ObjectMapper();
+
+  const jsonData = objectMapper.stringify<Employee>(employee);
+  t.deepEqual(JSON.parse(jsonData), JSON.parse('{"id":1,"empName":"John"}'));
+});
+
+test('@JsonProperty with null created value', t => {
+
+  class Other {}
+
+  class Employee {
+    @JsonProperty() @JsonClassType({type: () => [Number]})
+    id: number;
+    @JsonProperty({value: 'empName'}) @JsonClassType({type: () => [String]})
+    name: string;
+    @JsonProperty() @JsonClassType({type: () => [Other]})
+    other: Other | null;
+
+    constructor(id: number, name: string, other: Other | null) {
+      this.id = id;
+      this.name = name;
+      this.other = other;
+    }
+  }
+
+  const employee = new Employee(1, 'John', null);
+  const objectMapper = new ObjectMapper();
+
+  const jsonData = objectMapper.stringify<Employee>(employee);
+  t.deepEqual(JSON.parse(jsonData), JSON.parse('{"id":1,"empName":"John","other":null}'));
+});
+
 test('Fail @JsonProperty with required at parameter level', t => {
   class Employee {
     @JsonProperty() @JsonClassType({type: () => [Number]})
