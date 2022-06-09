@@ -39,7 +39,7 @@ export const JsonUnwrapped: JsonUnwrappedDecorator = makeJacksonDecorator(
     suffix: '',
     ...o
   }),
-  (options: JsonUnwrappedOptions, target, propertyKey, descriptorOrParamIndex) => {
+  (options: JsonUnwrappedOptions, target, propertyKey) => {
     if (propertyKey != null) {
       defineMetadata('JsonUnwrapped', options, target.constructor, propertyKey);
       defineMetadata('JsonUnwrapped', options, target.constructor, null, {

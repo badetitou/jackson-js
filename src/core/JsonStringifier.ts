@@ -739,8 +739,8 @@ export class JsonStringifier<T> {
             .sort((a, b) => a[1] > b[1] ? 1 : -1)
         );
         const remainingKeysOrdered = [];
-        for (const [classProperty, virtualProperty] of remainingVirtualKeysOrdered) {
-          remainingKeysOrdered.push(classProperty);
+        for (const entry of remainingVirtualKeysOrdered) {
+          remainingKeysOrdered.push(entry[0]);
         }
         remainingKeys = remainingKeysOrdered;
       }

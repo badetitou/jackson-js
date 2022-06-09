@@ -40,7 +40,7 @@ import {JacksonError} from '../core/JacksonError';
  */
 export const JsonValue: JsonValueDecorator = makeJacksonDecorator(
   (o: JsonValueOptions): JsonValueOptions => ({enabled: true, ...o}),
-  (options: JsonValueOptions, target, propertyKey, descriptorOrParamIndex) => {
+  (options: JsonValueOptions, target, propertyKey) => {
     if (propertyKey != null) {
       if (hasMetadata('JsonValue', target.constructor, null, {withContextGroups: options.contextGroups})) {
         throw new JacksonError(`Multiple @JsonValue() decorators for ${target.constructor}.'`);

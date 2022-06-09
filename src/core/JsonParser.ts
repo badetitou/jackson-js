@@ -828,7 +828,7 @@ export class JsonParser<T> {
         }
         */
 
-        this.parseJsonInject(instance, obj, classProperty, context, globalContext);
+        this.parseJsonInject(instance, obj, classProperty, context);
         // if there is a reference, convert the reference property to the corresponding Class
         this.parseJsonManagedReference(instance, context, obj, classProperty);
       }
@@ -843,10 +843,8 @@ export class JsonParser<T> {
    * @param obj
    * @param key
    * @param context
-   * @param globalContext
    */
-  private parseJsonInject(replacement: any, obj: any, key: string, context: JsonParserTransformerContext,
-                          globalContext: JsonParserGlobalContext) {
+  private parseJsonInject(replacement: any, obj: any, key: string, context: JsonParserTransformerContext) {
     const currentMainCreator = context.mainCreator[0];
 
     let propertySetter;
@@ -1286,7 +1284,7 @@ export class JsonParser<T> {
 
         if (jsonBackReference) {
           if (isSameConstructorOrExtensionOfNoObject(childConstructor, Map)) {
-            for (const [k, value] of replacement[key]) {
+            for (const value of replacement[key][1]) {
               if (typeof value[jsonBackReference._propertyKey] === 'function') {
                 value[jsonBackReference._propertyKey](replacement);
               } else {

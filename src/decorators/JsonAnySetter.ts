@@ -40,7 +40,7 @@ import {JacksonError} from '../core/JacksonError';
  */
 export const JsonAnySetter: JsonAnySetterDecorator = makeJacksonDecorator(
   (o: JsonAnySetterOptions): JsonAnySetterOptions => ({enabled: true, ...o}),
-  (options: JsonAnySetterOptions, target, propertyKey, descriptorOrParamIndex) => {
+  (options: JsonAnySetterOptions, target, propertyKey) => {
     if (propertyKey != null) {
       if (hasMetadata('JsonAnySetter', target.constructor, null, {withContextGroups: options.contextGroups})) {
         throw new JacksonError(`Multiple 'any-setters' defined for "${target.constructor.name}".`);

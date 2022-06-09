@@ -51,7 +51,7 @@ import {JsonTypeIdDecorator, JsonTypeIdOptions} from '../@types';
  */
 export const JsonTypeId: JsonTypeIdDecorator = makeJacksonDecorator(
   (o: JsonTypeIdOptions = {}): JsonTypeIdOptions => ({enabled: true, ...o}),
-  (options: JsonTypeIdOptions, target, propertyKey, descriptorOrParamIndex) => {
+  (options: JsonTypeIdOptions, target, propertyKey) => {
     if (propertyKey != null) {
       defineMetadata('JsonTypeId', options, target.constructor);
     }
