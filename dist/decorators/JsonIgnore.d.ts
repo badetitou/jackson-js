@@ -8,6 +8,8 @@ import { JsonIgnoreDecorator } from '../@types';
  * (field, getter/setter method or Creator parameter [of JsonCreator-decorated constructor or factory method])
  * is to be ignored during serialization and deserialization functionality.
  *
+ * Ignored properties will be undefined in a deserialized instance and will not appear in serialized JSON.
+ *
  * @example
  * ```typescript
  * class Item {

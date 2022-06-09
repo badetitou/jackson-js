@@ -109,7 +109,6 @@ export declare class JsonParser<T> {
      * @param obj
      * @param key
      * @param context
-     * @param globalContext
      */
     private parseJsonInject;
     /**

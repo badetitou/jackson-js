@@ -700,6 +700,13 @@ export interface JsonPropertyOptions extends JsonDecoratorOptions {
      * @default `false`
      */
     required?: boolean;
+    /**
+     * Property that indicates whether an undefined or missing value is
+     * mapped to null or allowed to remain undefined.
+     *
+     * @default `false`
+     */
+    disallowUndefined?: boolean;
 }
 /**
  * Decorator options for {@link JsonPropertyOrder}.
