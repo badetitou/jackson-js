@@ -75,12 +75,12 @@ test('@JsonIgnore at property level', t => {
   t.assert(userParsed.items[0] instanceof Item);
   t.is(userParsed.items[0].id, 1);
   t.is(userParsed.items[0].name, 'Game Of Thrones');
-  t.is(userParsed.items[0].category, null);
-  t.is(userParsed.items[0].owner, null);
+  t.is(userParsed.items[0].category, undefined);
+  t.is(userParsed.items[0].owner, undefined);
   t.assert(userParsed.items[1] instanceof Item);
   t.is(userParsed.items[1].name, 'NVIDIA');
-  t.is(userParsed.items[1].category, null);
-  t.is(userParsed.items[1].owner, null);
+  t.is(userParsed.items[1].category, undefined);
+  t.is(userParsed.items[1].owner, undefined);
 });
 
 test('@JsonIgnore at method level', t => {
@@ -174,12 +174,12 @@ test('@JsonIgnore at method level', t => {
   t.assert(userParsed.items[0] instanceof Item);
   t.is(userParsed.items[0].id, 1);
   t.is(userParsed.items[0].name, 'Game Of Thrones');
-  t.is(userParsed.items[0].category, null);
-  t.is(userParsed.items[0].owner, null);
+  t.is(userParsed.items[0].category, undefined);
+  t.is(userParsed.items[0].owner, undefined);
   t.assert(userParsed.items[1] instanceof Item);
   t.is(userParsed.items[1].name, 'NVIDIA');
-  t.is(userParsed.items[1].category, null);
-  t.is(userParsed.items[1].owner, null);
+  t.is(userParsed.items[1].category, undefined);
+  t.is(userParsed.items[1].owner, undefined);
 });
 
 test('@JsonIgnore at parameter level', t => {
@@ -238,10 +238,10 @@ test('@JsonIgnore at parameter level', t => {
   t.assert(userParsed.items[0] instanceof Item);
   t.is(userParsed.items[0].id, 1);
   t.is(userParsed.items[0].name, 'Game Of Thrones');
-  t.is(userParsed.items[0].category, null);
-  t.assert(userParsed.items[0].owner == null);
+  t.is(userParsed.items[0].category, undefined);
+  t.assert(userParsed.items[0].owner == undefined);
   t.assert(userParsed.items[1] instanceof Item);
   t.is(userParsed.items[1].name, 'NVIDIA');
-  t.is(userParsed.items[1].category, null);
-  t.assert(userParsed.items[1].owner == null);
+  t.is(userParsed.items[1].category, undefined);
+  t.assert(userParsed.items[1].owner == undefined);
 });

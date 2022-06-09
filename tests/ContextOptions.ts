@@ -186,9 +186,9 @@ test('forType context option', t => {
     ]
   });
   t.assert(writerParsed instanceof Writer);
-  t.is(writerParsed.id, null);
+  t.is(writerParsed.id, undefined);
   t.is(writerParsed.name, 'George R. R. Martin');
-  t.is(writerParsed.birthday, null);
+  t.is(writerParsed.birthday, undefined);
   t.is(writerParsed.books.length, 1);
   t.assert(writerParsed.books[0] instanceof Book);
   t.is(writerParsed.books[0].id, 1);

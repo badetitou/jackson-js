@@ -54,11 +54,11 @@ test('CommonFeature.DEFAULT_VIEW_INCLUSION set to false', t => {
   });
   t.assert(userParsed instanceof User);
   t.is(userParsed.id, 1);
-  t.is(userParsed.email, null);
-  t.is(userParsed.password, null);
-  t.is(userParsed.firstname, null);
-  t.is(userParsed.lastname, null);
-  t.is(userParsed.activationCode, null);
+  t.is(userParsed.email, undefined);
+  t.is(userParsed.password, undefined);
+  t.is(userParsed.firstname, undefined);
+  t.is(userParsed.lastname, undefined);
+  t.is(userParsed.activationCode, undefined);
 });
 
 test('CommonFeature.SET_DEFAULT_VALUE_FOR_PRIMITIVES_ON_NULL set to true', t => {

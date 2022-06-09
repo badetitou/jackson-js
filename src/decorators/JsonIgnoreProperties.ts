@@ -13,6 +13,8 @@ import {JsonIgnorePropertiesDecorator, JsonIgnorePropertiesOptions} from '../@ty
  * When used for properties (fields, methods), this decorator applies to values:
  * so when applied to Iterables and Maps, it will apply to contained values, not the container.
  *
+ * Ignored properties will be undefined in a deserialized instance and will not appear in serialized JSON.
+ *
  * @example
  * ```typescript
  * @JsonIgnoreProperties({

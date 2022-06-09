@@ -74,10 +74,10 @@ test('@JsonView at class level', t => {
   t.assert(userParsedWithViewPublic instanceof User);
   t.is(userParsedWithViewPublic.id, 1);
   t.is(userParsedWithViewPublic.email, 'john.alfa@gmail.com');
-  t.is(userParsedWithViewPublic.password, null);
+  t.is(userParsedWithViewPublic.password, undefined);
   t.is(userParsedWithViewPublic.firstname, 'John');
   t.is(userParsedWithViewPublic.lastname, 'Alfa');
-  t.is(userParsedWithViewPublic.activationCode, null);
+  t.is(userParsedWithViewPublic.activationCode, undefined);
 
   const jsonDataWithViewInternal = objectMapper.stringify<User>(user, {withViews: () => [Views.internal]});
   // eslint-disable-next-line max-len
@@ -89,11 +89,11 @@ test('@JsonView at class level', t => {
     withViews: () => [Views.internal]
   });
   t.assert(userParsedWithViewInternal instanceof User);
-  t.is(userParsedWithViewInternal.id, null);
-  t.is(userParsedWithViewInternal.email, null);
+  t.is(userParsedWithViewInternal.id, undefined);
+  t.is(userParsedWithViewInternal.email, undefined);
   t.is(userParsedWithViewInternal.password, 'rtJ9FrqP!rCE');
-  t.is(userParsedWithViewInternal.firstname, null);
-  t.is(userParsedWithViewInternal.lastname, null);
+  t.is(userParsedWithViewInternal.firstname, undefined);
+  t.is(userParsedWithViewInternal.lastname, undefined);
   t.is(userParsedWithViewInternal.activationCode, '75afe654-695e-11ea-bc55-0242ac130003');
 });
 
@@ -157,10 +157,10 @@ test('@JsonView at property level', t => {
   t.assert(userParsedWithViewPublic instanceof User);
   t.is(userParsedWithViewPublic.id, 1);
   t.is(userParsedWithViewPublic.email, 'john.alfa@gmail.com');
-  t.is(userParsedWithViewPublic.password, null);
+  t.is(userParsedWithViewPublic.password, undefined);
   t.is(userParsedWithViewPublic.firstname, 'John');
   t.is(userParsedWithViewPublic.lastname, 'Alfa');
-  t.is(userParsedWithViewPublic.activationCode, null);
+  t.is(userParsedWithViewPublic.activationCode, undefined);
 
   const jsonDataWithViewInternal = objectMapper.stringify<User>(user, {withViews: () => [Views.internal]});
   // eslint-disable-next-line max-len
@@ -266,10 +266,10 @@ test('@JsonView at method level', t => {
   t.assert(userParsedWithViewPublic instanceof User);
   t.is(userParsedWithViewPublic.id, 1);
   t.is(userParsedWithViewPublic.email, 'john.alfa@gmail.com');
-  t.is(userParsedWithViewPublic.password, null);
+  t.is(userParsedWithViewPublic.password, undefined);
   t.is(userParsedWithViewPublic.firstname, 'John');
   t.is(userParsedWithViewPublic.lastname, 'Alfa');
-  t.is(userParsedWithViewPublic.activationCode, null);
+  t.is(userParsedWithViewPublic.activationCode, undefined);
 
   const jsonDataWithViewInternal = objectMapper.stringify<User>(user, {withViews: () => [Views.internal]});
   // eslint-disable-next-line max-len
@@ -331,5 +331,5 @@ test('@JsonView at parameter level', t => {
   });
   t.assert(companyParsed instanceof Company);
   t.is(companyParsed.name, 'Google');
-  t.is(companyParsed.employees, null);
+  t.is(companyParsed.employees, undefined);
 });

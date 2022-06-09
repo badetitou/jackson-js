@@ -13,6 +13,8 @@ import {JsonViewDecorator, JsonViewOptions} from '../@types';
  * It is also possible to use this decorator on classes to indicate the default view(s)
  * for properties of the type, unless overridden by per-property decorator.
  *
+ * View excluded properties will be *undefined* in a deserialized instance and will *not* appear in serialized JSON.
+ *
  * @example
  * ```typescript
  * class Views {

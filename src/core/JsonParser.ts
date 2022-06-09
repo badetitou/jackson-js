@@ -1010,10 +1010,13 @@ export class JsonParser<T> {
 
       const hasJsonIgnore =
         hasMetadata('JsonIgnoreParam:' + argIndex, currentMainCreator, methodName, context);
-      const isIncludedByJsonView = this.parseIsIncludedByJsonViewParam(context, methodName, argIndex);
+      if (hasJsonIgnore) {
+        args.push(undefined);
+      }
 
-      if (hasJsonIgnore || !isIncludedByJsonView) {
-        args.push(null);
+      const isIncludedByJsonView = this.parseIsIncludedByJsonViewParam(context, methodName, argIndex);
+      if (!isIncludedByJsonView) {
+        args.push(undefined);
         continue;
       }
 
@@ -1048,12 +1051,12 @@ export class JsonParser<T> {
             // eslint-disable-next-line max-len
             throw new JacksonError(`Missing @JsonCreator() parameter at index ${argIndex} of ${currentMainCreator.name}.${methodName} at [Source '${JSON.stringify(obj)}']`);
           }
-          args.push(jsonInject ? context.injectableValues[jsonInject.value] : null);
+          args.push(jsonInject ? context.injectableValues[jsonInject.value] : (jsonProperty?.disallowUndefined ? null : undefined));
         }
 
       } else {
         // force argument value to use options.injectableValues
-        args.push(jsonInject ? context.injectableValues[jsonInject.value] : null);
+        args.push(jsonInject ? context.injectableValues[jsonInject.value] : undefined);
       }
     }
 

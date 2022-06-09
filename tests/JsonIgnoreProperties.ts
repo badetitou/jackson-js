@@ -73,11 +73,11 @@ test('@JsonIgnoreProperties', t => {
   t.is(userParsed.items[0].id, 1);
   t.is(userParsed.items[0].name, 'Game Of Thrones');
   t.is(userParsed.items[0].category, 'Book');
-  t.is(userParsed.items[0].owner, null);
+  t.is(userParsed.items[0].owner, undefined);
   t.is(userParsed.items[1].id, 2);
   t.is(userParsed.items[1].name, 'NVIDIA');
   t.is(userParsed.items[1].category, 'Graphic Card');
-  t.is(userParsed.items[1].owner, null);
+  t.is(userParsed.items[1].owner, undefined);
 });
 
 test('@JsonIgnoreProperties at property level', t => {
@@ -145,17 +145,17 @@ test('@JsonIgnoreProperties at property level', t => {
   t.assert(userParsed instanceof User);
   t.is(userParsed.id, 1);
   t.is(userParsed.email, 'john.alfa@gmail.com');
-  t.is(userParsed.firstname, null);
+  t.is(userParsed.firstname, undefined);
   t.is(userParsed.lastname, 'Alfa');
   t.is(userParsed.items.length, 2);
   t.is(userParsed.items[0].id, 1);
   t.is(userParsed.items[0].name, 'Game Of Thrones');
   t.is(userParsed.items[0].category, 'Book');
-  t.is(userParsed.items[0].owner, null);
+  t.is(userParsed.items[0].owner, undefined);
   t.is(userParsed.items[1].id, 2);
   t.is(userParsed.items[1].name, 'NVIDIA');
   t.is(userParsed.items[1].category, 'Graphic Card');
-  t.is(userParsed.items[1].owner, null);
+  t.is(userParsed.items[1].owner, undefined);
 });
 
 test('@JsonIgnoreProperties at method level', t => {
@@ -237,17 +237,17 @@ test('@JsonIgnoreProperties at method level', t => {
   t.assert(userParsed instanceof User);
   t.is(userParsed.id, 1);
   t.is(userParsed.email, 'john.alfa@gmail.com');
-  t.is(userParsed.firstname, null);
+  t.is(userParsed.firstname, undefined);
   t.is(userParsed.lastname, 'Alfa');
   t.is(userParsed.items.length, 2);
   t.is(userParsed.items[0].id, 1);
   t.is(userParsed.items[0].name, 'Game Of Thrones');
   t.is(userParsed.items[0].category, 'Book');
-  t.is(userParsed.items[0].owner, null);
+  t.is(userParsed.items[0].owner, undefined);
   t.is(userParsed.items[1].id, 2);
   t.is(userParsed.items[1].name, 'NVIDIA');
   t.is(userParsed.items[1].category, 'Graphic Card');
-  t.is(userParsed.items[1].owner, null);
+  t.is(userParsed.items[1].owner, undefined);
 });
 
 test('@JsonIgnoreProperties at parameter level', t => {
@@ -314,11 +314,11 @@ test('@JsonIgnoreProperties at parameter level', t => {
   t.is(userParsed.items[0].id, 1);
   t.is(userParsed.items[0].name, 'Game Of Thrones');
   t.is(userParsed.items[0].category, 'Book');
-  t.is(userParsed.items[0].owner, null);
+  t.is(userParsed.items[0].owner, undefined);
   t.is(userParsed.items[1].id, 2);
   t.is(userParsed.items[1].name, 'NVIDIA');
   t.is(userParsed.items[1].category, 'Graphic Card');
-  t.is(userParsed.items[1].owner, null);
+  t.is(userParsed.items[1].owner, undefined);
 });
 
 test('@JsonIgnoreProperties at parameter level (inside @JsonClass)', t => {
@@ -396,11 +396,11 @@ test('@JsonIgnoreProperties at parameter level (inside @JsonClass)', t => {
   t.is(userParsed.items[0].id, 1);
   t.is(userParsed.items[0].name, 'Game Of Thrones');
   t.is(userParsed.items[0].category, 'Book');
-  t.is(userParsed.items[0].owner, null);
+  t.is(userParsed.items[0].owner, undefined);
   t.is(userParsed.items[1].id, 2);
   t.is(userParsed.items[1].name, 'NVIDIA');
   t.is(userParsed.items[1].category, 'Graphic Card');
-  t.is(userParsed.items[1].owner, null);
+  t.is(userParsed.items[1].owner, undefined);
 });
 
 test('@JsonIgnoreProperties with @JsonGetter and @JsonSetter', t => {
@@ -484,7 +484,7 @@ test('@JsonIgnoreProperties with allowGetters "true"', t => {
   const userParsed = objectMapper.parse<User>(jsonData, {mainCreator: () => [User]});
   t.assert(userParsed instanceof User);
   t.is(userParsed.id, 1);
-  t.is(userParsed.firstname, null);
+  t.is(userParsed.firstname, undefined);
   t.is(userParsed.lastname, 'Alfa');
   t.is(userParsed.fullname, undefined);
 });
@@ -527,7 +527,7 @@ test('@JsonIgnoreProperties with allowSetters "true"', t => {
   const userParsed = objectMapper.parse<User>(jsonData, {mainCreator: () => [User]});
   t.assert(userParsed instanceof User);
   t.is(userParsed.id, 1);
-  t.is(userParsed.firstname, null);
+  t.is(userParsed.firstname, undefined);
   t.is(userParsed.lastname, 'Alfa');
   t.deepEqual(userParsed.fullname, ['John', 'Alfa']);
 });
@@ -695,7 +695,7 @@ test('@JsonIgnoreProperties with ignoreUnknown "true"', t => {
   const userParsed = objectMapper.parse<User>(jsonData, {mainCreator: () => [User]});
   t.assert(userParsed instanceof User);
   t.is(userParsed.id, 1);
-  t.is(userParsed.firstname, null);
+  t.is(userParsed.firstname, undefined);
   t.is(userParsed.lastname, 'Alfa');
   t.assert(!Object.hasOwnProperty.call(userParsed, 'email'));
 });
