@@ -93,6 +93,13 @@ export interface DeserializationFeature extends CommonFeature {
      * otherwise value of the wrapped property will be deserialized as if it was the root value.
      */
     UNWRAP_ROOT_VALUE?: boolean;
+    /**
+     * Feature to map undefined values produced by missing properties, ignored properties or properties excluded by view
+     * selection.
+     * If enabled, all undefined values will be replaced with null on deserialized instances.
+     * If disabled, undefined properties will be missing from deserialized instances.
+     */
+    MAP_UNDEFINED_TO_NULL?: boolean;
 }
 /**
  * Variable that defines default feature values for {@link ObjectMapper} and {@link JsonParser}.
