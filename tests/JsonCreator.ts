@@ -69,6 +69,37 @@ test('@JsonCreator on class using JsonCreatorMode.DELEGATING mode', t => {
   t.is(employee.department, 'Admin');
 });
 
+test('@JsonCreator on class using JsonCreatorMode.PROPERTIES_OBJECT mode', t => {
+  @JsonCreator({mode: JsonCreatorMode.PROPERTIES_OBJECT})
+  class Employee {
+    @JsonProperty() @JsonClassType({type: () => [Number]})
+    id: number;
+    @JsonProperty() @JsonClassType({type: () => [String]})
+    name: string;
+    @JsonProperty() @JsonClassType({type: () => [Date]})
+    date: Date;
+
+    constructor(obj: { id: number; name: string; date: Date }) {
+      this.id = obj.id;
+      this.name = obj.name;
+      this.date = obj.date;
+    }
+  }
+
+  const objectMapper = new ObjectMapper();
+  const jsonData = `{
+  "id": 1,
+  "name": "Chris",
+  "date": "11/10/2012"
+}`;
+  const employee = objectMapper.parse<Employee>(jsonData, {mainCreator: () => [Employee]});
+
+  t.assert(employee instanceof Employee);
+  t.is(employee.id, 1);
+  t.is(employee.name, 'Chris');
+  t.deepEqual(employee.date, new Date(2012, 10, 10));
+});
+
 test('@JsonCreator on static method with and without creator name', t => {
   class Employee {
     @JsonProperty() @JsonClassType({type: () => [Number]})

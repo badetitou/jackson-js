@@ -715,6 +715,8 @@ export class JsonParser<T> {
         getMetadata(jsonCreatorMetadataKey, currentMainCreator, null, context) :
         currentMainCreator;
 
+      const jsonCreatorMode = ('mode' in jsonCreator && jsonCreator.mode) ? jsonCreator.mode : undefined;
+
       const jsonIgnoreProperties: JsonIgnorePropertiesOptions =
         getMetadata('JsonIgnoreProperties', currentMainCreator, null, context);
 
@@ -724,28 +726,36 @@ export class JsonParser<T> {
           (jsonCreator as JsonCreatorOptions)._method)
         : jsonCreator;
 
-      let args;
-      let argNames;
-      let argNamesAliasToBeExcluded;
+      let props: [string, any][];
+      let propNames: string[];
+      let propNamesAliasToBeExcluded: string[];
 
-      let instance;
+      let instance: any;
 
-      if (('mode' in jsonCreator && jsonCreator.mode === JsonCreatorMode.PROPERTIES) || !('mode' in jsonCreator)) {
-        const methodName = ('_propertyKey' in jsonCreator && jsonCreator._propertyKey) ? jsonCreator._propertyKey : 'constructor';
-        const result = this.parseMethodArguments(methodName, method, obj, parent, context, globalContext, null, true);
-        args = result.args != null && result.args.length > 0 ? result.args : [obj];
-        argNames = result.argNames;
-        argNamesAliasToBeExcluded = result.argNamesAliasToBeExcluded;
+      if (jsonCreatorMode !== JsonCreatorMode.DELEGATING) {
 
-        instance = ('_method' in jsonCreator && jsonCreator._method) ?
-          (method as Function)(...args) : new (method as ObjectConstructor)(...args);
-      } else if ('mode' in jsonCreator) {
-        switch (jsonCreator.mode) {
-        case JsonCreatorMode.DELEGATING:
-          instance = ('_method' in jsonCreator && jsonCreator._method) ?
-            (method as Function)(obj) : new (method as ObjectConstructor)(obj);
-          break;
+        if (jsonCreatorMode === JsonCreatorMode.PROPERTIES_OBJECT) {
+          propNames = getClassProperties(currentMainCreator, obj, context);
+        } else {
+          propNames = method ? getArgumentNames(method) : [];
         }
+
+        const methodName = ('_propertyKey' in jsonCreator && jsonCreator._propertyKey) ? jsonCreator._propertyKey : 'constructor';
+        const result = this.parseCreatorProperties(methodName, method, obj, parent, context, globalContext, propNames, true);
+        props = result.props != null && result.props.length > 0 ? result.props : [['', obj]];
+        propNamesAliasToBeExcluded = result.propNamesAliasToBeExcluded;
+
+        if (jsonCreatorMode === JsonCreatorMode.PROPERTIES_OBJECT) {
+          instance = {};
+          props.forEach(([key, value]) => (instance[key] = value));
+        } else {
+          const args = props.map(([, value]) => value);
+          instance = ('_method' in jsonCreator && jsonCreator._method) ?
+            (method as Function)(...args) : new (method as ObjectConstructor)(...args);
+        }
+      } else {
+        instance = ('_method' in jsonCreator && jsonCreator._method) ?
+          (method as Function)(obj) : new (method as ObjectConstructor)(obj);
       }
 
       this.parseJsonIdentityInfo(instance, obj, context, globalContext);
@@ -764,10 +774,10 @@ export class JsonParser<T> {
         }
       }
 
-      if (('mode' in jsonCreator && jsonCreator.mode === JsonCreatorMode.PROPERTIES) || !('mode' in jsonCreator)) {
+      if (jsonCreatorMode !== JsonCreatorMode.DELEGATING) {
         const keysToBeExcluded = [...new Set([
-          ...argNames,
-          ...argNamesAliasToBeExcluded,
+          ...propNames,
+          ...propNamesAliasToBeExcluded,
           ...jsonAppendAttributesToBeExcluded,
           ...classPropertiesToBeExcluded
         ])];
@@ -833,6 +843,11 @@ export class JsonParser<T> {
         this.parseJsonManagedReference(instance, context, obj, classProperty);
       }
 
+      if (jsonCreatorMode === JsonCreatorMode.PROPERTIES_OBJECT) {
+        instance = ('_method' in jsonCreator && jsonCreator._method) ?
+          (method as Function)(instance) : new (method as ObjectConstructor)(instance);
+      }
+
       return instance;
     }
   }
@@ -891,8 +906,8 @@ export class JsonParser<T> {
 
       let parsedValue;
       if (typeof jsonVirtualProperty._descriptor.value === 'function') {
-        parsedValue = this.parseMethodArguments(key, null, obj, parent, context, globalContext, [jsonVirtualProperty.value], false)
-          .args[0];
+        parsedValue = this.parseCreatorProperties(key, null, obj, parent, context, globalContext, [jsonVirtualProperty.value], false)
+          .props[0][1];
       } else {
         parsedValue = this.parseJsonClassType(context, globalContext, obj, key, parent);
       }
@@ -967,68 +982,66 @@ export class JsonParser<T> {
    * @param parent
    * @param context
    * @param globalContext
-   * @param argNames
+   * @param propNames
    * @param isJsonCreator
    */
-  private parseMethodArguments(methodName: string,
-                               method: any,
-                               obj: any,
-                               parent: any,
-                               context: JsonParserTransformerContext,
-                               globalContext: JsonParserGlobalContext,
-                               argNames: string[],
-                               isJsonCreator: boolean): {
-      args: Array<any>;
-      argNames: Array<string>;
-      argNamesAliasToBeExcluded: Array<string>;
+  private parseCreatorProperties(methodName: string,
+                                 method: any,
+                                 obj: any,
+                                 parent: any,
+                                 context: JsonParserTransformerContext,
+                                 globalContext: JsonParserGlobalContext,
+                                 propNames: string[],
+                                 isJsonCreator: boolean): {
+      props: [string, any][];
+      propNamesAliasToBeExcluded: Array<string>;
     } {
     const currentMainCreator = context.mainCreator[0];
-    const args = [];
-    argNames = (method) ? getArgumentNames(method) : argNames;
+    const props: [string, any][] = [];
 
     if (context.features.deserialization.ACCEPT_CASE_INSENSITIVE_PROPERTIES) {
       const objKeys = Object.keys(obj);
       const caseInsesitiveObjKeys = objKeys.map((k) => k.toLowerCase());
-      for (const argName of argNames) {
-        const index = caseInsesitiveObjKeys.indexOf(argName.toLowerCase());
+      for (const propName of propNames) {
+        const index = caseInsesitiveObjKeys.indexOf(propName.toLowerCase());
         if (index >= 0) {
-          obj[argName] = obj[objKeys[index]];
+          obj[propName] = obj[objKeys[index]];
           delete obj[objKeys[index]];
-          objKeys[index] = argName;
+          objKeys[index] = propName;
         }
       }
     }
 
-    argNames = mapVirtualPropertiesToClassProperties(currentMainCreator, argNames, context, {checkSetters: true});
+    propNames = mapVirtualPropertiesToClassProperties(currentMainCreator, propNames, context, {checkSetters: true});
 
-    const argNamesAliasToBeExcluded = [];
+    const propNamesAliasToBeExcluded = [];
 
-    for (let argIndex = 0; argIndex < argNames.length; argIndex++) {
-      const key = argNames[argIndex];
+    for (let propIndex = 0; propIndex < propNames.length; propIndex++) {
+      const key = propNames[propIndex];
 
       const hasJsonIgnore =
-        hasMetadata('JsonIgnoreParam:' + argIndex, currentMainCreator, methodName, context);
+        hasMetadata('JsonIgnoreParam:' + propIndex, currentMainCreator, methodName, context);
       if (hasJsonIgnore) {
-        args.push(context.features.deserialization.MAP_UNDEFINED_TO_NULL ? null : undefined);
+        props.push([key, context.features.deserialization.MAP_UNDEFINED_TO_NULL ? null : undefined]);
       }
 
-      const isIncludedByJsonView = this.parseIsIncludedByJsonViewParam(context, methodName, argIndex);
+      const isIncludedByJsonView = this.parseIsIncludedByJsonViewParam(context, methodName, propIndex);
       if (!isIncludedByJsonView) {
-        args.push(context.features.deserialization.MAP_UNDEFINED_TO_NULL ? null : undefined);
+        props.push([key, context.features.deserialization.MAP_UNDEFINED_TO_NULL ? null : undefined]);
         continue;
       }
 
       const jsonInject: JsonInjectOptions =
-        getMetadata('JsonInjectParam:' + argIndex, currentMainCreator, methodName, context);
+        getMetadata('JsonInjectParam:' + propIndex, currentMainCreator, methodName, context);
 
       if (!jsonInject || (jsonInject && jsonInject.useInput)) {
         const jsonProperty: JsonPropertyOptions =
-          getMetadata('JsonPropertyParam:' + argIndex, currentMainCreator, methodName, context);
+          getMetadata('JsonPropertyParam:' + propIndex, currentMainCreator, methodName, context);
 
         let mappedKey: string = jsonProperty != null ? jsonProperty.value : null;
         if (!mappedKey) {
           const jsonAlias: JsonAliasOptions =
-            getMetadata('JsonAliasParam:' + argIndex, currentMainCreator, methodName, context);
+            getMetadata('JsonAliasParam:' + propIndex, currentMainCreator, methodName, context);
 
           if (jsonAlias && jsonAlias.values) {
             mappedKey = jsonAlias.values.find((alias) => Object.hasOwnProperty.call(obj, alias));
@@ -1036,47 +1049,47 @@ export class JsonParser<T> {
         }
 
         if (mappedKey && Object.hasOwnProperty.call(obj, mappedKey)) {
-          args.push(this.parseJsonClassType(context, globalContext, obj, mappedKey, parent, methodName, argIndex));
-          argNamesAliasToBeExcluded.push(mappedKey);
+          props.push([key, this.parseJsonClassType(context, globalContext, obj, mappedKey, parent, methodName, propIndex)]);
+          propNamesAliasToBeExcluded.push(mappedKey);
         } else if (mappedKey && jsonProperty.required) {
           // eslint-disable-next-line max-len
-          throw new JacksonError(`Required property "${mappedKey}" not found on parameter at index ${argIndex} of ${currentMainCreator.name}.${methodName} at [Source '${JSON.stringify(obj)}']`);
+          throw new JacksonError(`Required property "${mappedKey}" not found on parameter at index ${propIndex} of ${currentMainCreator.name}.${methodName} at [Source '${JSON.stringify(obj)}']`);
         } else if (Object.hasOwnProperty.call(obj, key)) {
-          args.push(this.parseJsonClassType(context, globalContext, obj, key, parent, methodName, argIndex));
+          props.push([key, this.parseJsonClassType(context, globalContext, obj, key, parent, methodName, propIndex)]);
         } else {
           if (isJsonCreator && context.features.deserialization.FAIL_ON_MISSING_CREATOR_PROPERTIES &&
             (!jsonInject || (jsonInject && !(jsonInject.value in context.injectableValues)))) {
             // eslint-disable-next-line max-len
-            throw new JacksonError(`Missing @JsonCreator() parameter at index ${argIndex} of ${currentMainCreator.name}.${methodName} at [Source '${JSON.stringify(obj)}']`);
+            throw new JacksonError(`Missing @JsonCreator() parameter at index ${propIndex} of ${currentMainCreator.name}.${methodName} at [Source '${JSON.stringify(obj)}']`);
           }
-          args.push(
+          props.push([
+            key,
             jsonInject ?
               context.injectableValues[jsonInject.value] :
               (context.features.deserialization.MAP_UNDEFINED_TO_NULL ? null : undefined)
-          );
+          ]);
         }
 
       } else {
         // force argument value to use options.injectableValues
-        args.push(jsonInject ? context.injectableValues[jsonInject.value] : undefined);
+        props.push([key, jsonInject ? context.injectableValues[jsonInject.value] : undefined]);
       }
     }
 
     if (isJsonCreator && context.features.deserialization.FAIL_ON_NULL_CREATOR_PROPERTIES) {
-      const argsLength = args.length;
-      for (let i = 0; i < argsLength; i++) {
-        const arg = args[i];
-        if (arg == null) {
+      const propsLength = props.length;
+      for (let i = 0; i < propsLength; i++) {
+        const propValue = props[i][1];
+        if (propValue == null) {
           // eslint-disable-next-line max-len
-          throw new JacksonError(`Found "${arg}" value on @JsonCreator() parameter at index ${i} of ${currentMainCreator.name}.${methodName} at [Source '${JSON.stringify(obj)}']`);
+          throw new JacksonError(`Found "${propValue}" value on @JsonCreator() parameter at index ${i} of ${currentMainCreator.name}.${methodName} at [Source '${JSON.stringify(obj)}']`);
         }
       }
     }
 
     return {
-      args,
-      argNames,
-      argNamesAliasToBeExcluded
+      props,
+      propNamesAliasToBeExcluded
     };
   }
 
