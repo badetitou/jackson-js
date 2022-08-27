@@ -3,8 +3,8 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>JsonTypeInfoAs | jackson-js</title>
-	<meta name="description" content="Documentation for jackson-js">
+	<title>JsonTypeInfoAs | @outfoxx/jackson-js</title>
+	<meta name="description" content="Documentation for @outfoxx/jackson-js">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
 </head>
@@ -22,7 +22,7 @@
 						<li class="state loading">Preparing search index...</li>
 						<li class="state failure">The search index is not available</li>
 					</ul>
-					<a href="../index.html" class="title">jackson-js</a>
+					<a href="../index.html" class="title">@outfoxx/jackson-js</a>
 				</div>
 				<div class="table-cell" id="tsd-widgets">
 					<div id="tsd-filter">
@@ -81,6 +81,7 @@
 						<section class="tsd-index-section ">
 							<h3>Enumeration members</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="decorators.jsontypeinfoas.html#external_property" class="tsd-kind-icon">EXTERNAL_<wbr>PROPERTY</a></li>
 								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="decorators.jsontypeinfoas.html#property" class="tsd-kind-icon">PROPERTY</a></li>
 								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="decorators.jsontypeinfoas.html#wrapper_array" class="tsd-kind-icon">WRAPPER_<wbr>ARRAY</a></li>
 								<li class="tsd-kind-enum-member tsd-parent-kind-enum"><a href="decorators.jsontypeinfoas.html#wrapper_object" class="tsd-kind-icon">WRAPPER_<wbr>OBJECT</a></li>
@@ -92,12 +93,32 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Enumeration members</h2>
 				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
+					<a name="external_property" class="tsd-anchor"></a>
+					<h3>EXTERNAL_<wbr>PROPERTY</h3>
+					<div class="tsd-signature tsd-kind-icon">EXTERNAL_<wbr>PROPERTY<span class="tsd-signature-symbol">:</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/outfoxx/jackson-js/blob/30866b9/src/decorators/JsonTypeInfo.ts#L49">src/decorators/JsonTypeInfo.ts:49</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Inclusion mechanism similar to <code>PROPERTY</code>, except that
+								property is included one-level higher in hierarchy, i.e. as sibling
+								property at same level as JSON Object to type.
+								Note that this choice <strong>can only be used for properties</strong>, not
+								for types (classes). Trying to use it for classes will result in
+							inclusion strategy of basic <code>PROPERTY</code> instead.</p>
+						</div>
+					</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-enum-member tsd-parent-kind-enum">
 					<a name="property" class="tsd-anchor"></a>
 					<h3>PROPERTY</h3>
 					<div class="tsd-signature tsd-kind-icon">PROPERTY<span class="tsd-signature-symbol">:</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/pichillilorenzo/jackson-js/blob/0619b64/src/decorators/JsonTypeInfo.ts#L28">src/decorators/JsonTypeInfo.ts:28</a></li>
+							<li>Defined in <a href="https://github.com/outfoxx/jackson-js/blob/30866b9/src/decorators/JsonTypeInfo.ts#L28">src/decorators/JsonTypeInfo.ts:28</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -113,7 +134,7 @@
 					<div class="tsd-signature tsd-kind-icon">WRAPPER_<wbr>ARRAY<span class="tsd-signature-symbol">:</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/pichillilorenzo/jackson-js/blob/0619b64/src/decorators/JsonTypeInfo.ts#L40">src/decorators/JsonTypeInfo.ts:40</a></li>
+							<li>Defined in <a href="https://github.com/outfoxx/jackson-js/blob/30866b9/src/decorators/JsonTypeInfo.ts#L40">src/decorators/JsonTypeInfo.ts:40</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -130,7 +151,7 @@
 					<div class="tsd-signature tsd-kind-icon">WRAPPER_<wbr>OBJECT<span class="tsd-signature-symbol">:</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/pichillilorenzo/jackson-js/blob/0619b64/src/decorators/JsonTypeInfo.ts#L34">src/decorators/JsonTypeInfo.ts:34</a></li>
+							<li>Defined in <a href="https://github.com/outfoxx/jackson-js/blob/30866b9/src/decorators/JsonTypeInfo.ts#L34">src/decorators/JsonTypeInfo.ts:34</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -170,6 +191,9 @@
 					<li class="current tsd-kind-enum tsd-parent-kind-module">
 						<a href="decorators.jsontypeinfoas.html" class="tsd-kind-icon">Json<wbr>Type<wbr>Info<wbr>As</a>
 						<ul>
+							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
+								<a href="decorators.jsontypeinfoas.html#external_property" class="tsd-kind-icon">EXTERNAL_<wbr>PROPERTY</a>
+							</li>
 							<li class=" tsd-kind-enum-member tsd-parent-kind-enum">
 								<a href="decorators.jsontypeinfoas.html#property" class="tsd-kind-icon">PROPERTY</a>
 							</li>
