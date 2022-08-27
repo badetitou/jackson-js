@@ -17,9 +17,14 @@ export declare enum JsonCreatorMode {
      */
     PROPERTIES = 0,
     /**
+     * Mode that indicates that a single argument creator has properties to be bound from matching properties of
+     * incoming Object value.
+     */
+    PROPERTIES_OBJECT = 1,
+    /**
      * Mode that indicates that if creator takes a single argument, the whole incoming data value is passed as the argument to creator.
      */
-    DELEGATING = 1
+    DELEGATING = 2
 }
 /**
  * Decorator that can be used to define constructors and factory methods

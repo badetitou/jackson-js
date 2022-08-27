@@ -129,10 +129,10 @@ export declare class JsonParser<T> {
      * @param parent
      * @param context
      * @param globalContext
-     * @param argNames
+     * @param propNames
      * @param isJsonCreator
      */
-    private parseMethodArguments;
+    private parseCreatorProperties;
     /**
      *
      * @param replacement
