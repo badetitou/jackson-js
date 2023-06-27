@@ -231,8 +231,19 @@ export interface GetClassPropertiesOptions {
 /**
  * @internal
  */
+const alreadyMappedClassProperties: Map<Record<string, any>, Map<any, string[]>> = new Map();
+
+/**
+ * @internal
+ */
 export const getClassProperties = (target: Record<string, any>, obj: any = null, context: JsonStringifierParserCommonContext<any>,
                                    options: GetClassPropertiesOptions = {}): string[] => {
+
+  if (alreadyMappedClassProperties.get(target) !== undefined && alreadyMappedClassProperties.get(target).get(obj) !== undefined) {
+    // console.log('optimized for', target, key);
+    return alreadyMappedClassProperties.get(target).get(obj);
+  }
+
   options = {
     withGettersAsProperty: false,
     withGetterVirtualProperties: false,
@@ -349,6 +360,11 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
     }
     parent = Object.getPrototypeOf(parent);
   }
+
+  if (alreadyMappedClassProperties.get(target) === undefined) {
+    alreadyMappedClassProperties.set(target, new Map<string, string[]>());
+  }
+  alreadyMappedClassProperties.get(target).set(obj, [...classProperties]);
 
   return [...classProperties];
 };
