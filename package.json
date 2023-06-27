@@ -1,11 +1,11 @@
 {
-  "name": "@outfoxx/jackson-js",
-  "version": "1.4.0",
+  "name": "@badetitou/jackson-js",
+  "version": "1.4.1",
   "description": "JavaScript object serialization and deserialization library using decorators. It supports also advanced Object concepts such as polymorphism, Object identity and cyclic objects.",
   "author": {
-    "name": "Lorenzo Pichilli",
-    "email": "pichillilorenzo@gmail.com",
-    "url": "https://github.com/pichillilorenzo"
+    "name": "Benoît Verhaeghe",
+    "email": "banoit@badetitou.fr",
+    "url": "https://github.com/badetitou"
   },
   "keywords": [
     "jackson-json",
@@ -25,7 +25,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pichillilorenzo/jackson-js"
+    "url": "https://github.com/badetitou/jackson-js"
   },
   "scripts": {
     "clean": "rimraf ./dist",
@@ -33,8 +33,10 @@
     "build:doc": "npm run clean:doc && npm run build:doc:latest && npm run build:doc:current-version && node ./build-index-docs.js",
     "build:doc:latest": "typedoc --out ./docs/latest ./src --readme none --excludePrivate --excludeExternals --exclude \"**/!(@types)/*+(util|index).ts\" --custom-tags-config typedoc-tags-config.json",
     "build:doc:current-version": "typedoc --out ./docs/$npm_package_version ./src --name \"jackson-js $npm_package_version\" --readme none --excludePrivate --excludeExternals --exclude \"**/!(@types)/*+(util|index).ts\" --custom-tags-config typedoc-tags-config.json",
-    "build:dev": "npm run clean && ./node_modules/.bin/webpack --config webpack.dev.js",
+    "build:dev": "npm run clean && \"./node_modules/.bin/webpack\" --config webpack.dev.js",
     "build:prod": "npm run clean && ./node_modules/.bin/webpack --config webpack.prod.js",
+    "build:win:dev": "npm run clean && \"./node_modules/.bin/webpack\" --config webpack.dev.js",
+    "build:win:prod": "npm run clean && \"./node_modules/.bin/webpack\" --config webpack.prod.js",
     "start:node:dev": "node dist/lib.node",
     "test-es5": "TZ=UTC TS_NODE_PROJECT=tsconfig.json ava --concurrency=8 --timeout=3m --verbose",
     "test-es6": "TZ=UTC TS_NODE_PROJECT=tsconfig.es6.json ava --concurrency=8 --timeout=3m --verbose",

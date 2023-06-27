@@ -1,3 +1,7 @@
+## 1.4.1 - Optimize code
+
+This release try to optimize a lot the project in order to use it in industrial project
+
 ## 1.1.0
 
 - Update bundle dependencies
