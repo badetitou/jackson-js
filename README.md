@@ -5,8 +5,6 @@
 [![Travis](https://img.shields.io/travis/pichillilorenzo/jackson-js.svg?branch=master)](https://travis-ci.org/pichillilorenzo/jackson-js)
 [![Coverage Status](https://coveralls.io/repos/github/pichillilorenzo/jackson-js/badge.svg?branch=master)](https://coveralls.io/github/pichillilorenzo/jackson-js?branch=master)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](/LICENSE)
-[![Donate to this project using Paypal](https://img.shields.io/badge/paypal-donate-yellow.svg)](https://www.paypal.me/LorenzoPichilli)
-[![Donate to this project using Patreon](https://img.shields.io/badge/patreon-donate-yellow.svg)](https://www.patreon.com/bePatron?u=9269604)
 
 As the name implies, `jackson-js` is heavily inspired by the famous Java [FasterXML/jackson library](https://github.com/FasterXML/jackson).
 
