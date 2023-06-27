@@ -18,13 +18,15 @@ For simple cases, you don't need this library of course, you can just use `JSON.
 
 With `jackson-js` , you can easily manipulate your JavaScript objects/values serialization/deserialization using decorators such as `@JsonProperty()`, `@JsonFormat()`, `@JsonIgnore()`, and more. However, this library uses `JSON.parse` and `JSON.stringify` under the hood.
 
-Furthermore: 
-- it not only deserialize JSON text into a JavaScript object, it also converts it into an **instance of the class** specified in the `context` option (similar packages are: [class-transformer](https://github.com/typestack/class-transformer) and [TypedJSON](https://github.com/JohnWeisz/TypedJSON)); instead, with `JSON.parse` you will get just a simple plain (literal) JavaScript object (just `Object` type);
+Furthermore:
+
+- it not only deserializes JSON text into a JavaScript object, it also converts it into an **instance of the class** specified in the `context` option (similar packages are: [class-transformer](https://github.com/typestack/class-transformer) and [TypedJSON](https://github.com/JohnWeisz/TypedJSON)); instead, with `JSON.parse` you will get just a simple plain (literal) JavaScript object (just `Object` type);
 - it supports more advanced Object concepts such as **polymorphism** and **Object identity**;
 - it supports **cyclic object** serialization/deserialization;
 - it supports serialization/deserialization of other native JavaScript types: `Map`, `Set`, `BigInt`, Typed Arrays (such as `Int8Array`);
 
 This library can be useful in more complex cases, for example when you want to:
+
 - manipulate JSON in depth;
 - restore a JavaScript type (a similar package is [class-transformer](https://github.com/typestack/class-transformer)); 
 - preserve type information (using polymorphic type handling decorators: `@JsonTypeInfo`, `@JsonSubTypes`, and `@JsonTypeName`. A similar package is [TypedJSON](https://github.com/JohnWeisz/TypedJSON));
@@ -37,8 +39,9 @@ This library can be useful in more complex cases, for example when you want to:
 Most of the use cases of the Java [FasterXML/jackson](https://github.com/FasterXML/jackson) annotations are similar or equal.
 
 ## Installation
-```
-npm install --save jackson-js
+
+```sh
+npm install --save @badetitoujackson-js
 ```
 
 ## API
@@ -50,6 +53,7 @@ The main classes that `jackson-js` offers to serialize and deserialize JavaScrip
 ### ObjectMapper
 
 `ObjectMapper` provides functionality for both reading and writing JSON and applies `jackson-js` **decorators**. It will use instances of `JsonParser` and `JsonStringifier` for implementing actual reading/writing of JSON. It has two methods:
+
 - `stringify(obj: T, context?: JsonStringifierContext): string`: a method for serializing a JavaScript object or a value to a JSON string with **decorators** applied;
 - `parse(text: string, context?: JsonParserContext): T`: a method for deserializing a JSON string into a JavaScript object/value (of type `T`, based on the context given) with **decorators** applied.
 
@@ -106,10 +110,12 @@ Decorators available:
 ## Important note
 
 The most important decorators are:
+
 - `@JsonProperty()`: each class property (or its getter/setter) must be decorated with this decorator, otherwise deserialization and serialization will not work properly! That's because, for example, given a JavaScript class, there isn't any way or API (such as [Reflection API for Java](https://docs.oracle.com/javase/8/docs/api/java/lang/reflect/package-summary.html)) to get for sure all the class properties; also because, sometimes, compilers such as [TypeScript](https://www.typescriptlang.org/) and [Babel](https://babeljs.io/), can strip class properties after compilation from the class properties declaration;
 - `@JsonClassType()`: this decorator, instead, is used to define the type of a class property or method parameter. This information is used during serialization and, more important, during deserialization to know about **the type of a property/parameter**. This is necessary because JavaScript isn't a strongly-typed programming language, so, for example, during deserialization, without the usage of this decorator, there isn't any way to know the specific type of a class property, such as a `Date` or a custom Class type.
 
 Here is a quick example about this two decorators:
+
 ```typescript
 class Book {
   @JsonProperty() @JsonClassType({type: () => [String]})
@@ -131,6 +137,7 @@ class Writer {
 ```
 
 ## Tutorials
+
 - [Jackson-js: Powerful JavaScript decorators to serialize/deserialize objects into JSON and vice versa (Part 1)](https://itnext.io/jackson-js-powerful-javascript-decorators-to-serialize-deserialize-objects-into-json-and-vice-df952454cf?source=friends_link&sk=a65bd247eca2f95fdfddda34447a6db6) - Article available at [[itnext.io](https://itnext.io/jackson-js-powerful-javascript-decorators-to-serialize-deserialize-objects-into-json-and-vice-df952454cf?source=friends_link&sk=a65bd247eca2f95fdfddda34447a6db6) | [dev.to](https://dev.to/pichillilorenzo/jackson-js-powerful-javascript-decorators-to-serialize-deserialize-objects-into-json-and-vice-versa-part-1-5484)].
 - [Jackson-js: Examples for client (Angular) and server (Node.js) side (Part 2)](https://medium.com/@pichillilorenzo/jackson-js-examples-for-client-and-server-side-part-2-7e66df74c851?source=friends_link&sk=2636fca640284894c63cb3c689a0e822) - Article available at [[medium.com](https://medium.com/@pichillilorenzo/jackson-js-examples-for-client-and-server-side-part-2-7e66df74c851?source=friends_link&sk=2636fca640284894c63cb3c689a0e822) | [dev.to](https://dev.to/pichillilorenzo/jackson-js-examples-for-client-angular-and-server-node-js-side-part-2-128n)]
 
