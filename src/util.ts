@@ -407,7 +407,7 @@ export const internVirtualPropertiesToClassPropertiesMapping =
    options: VirtualPropertiesToClassPropertiesMappingOptions): Set<string> => {
 
     if (alreadyMappedType.get(target) !== undefined && alreadyMappedType.get(target).get(key) !== undefined) {
-      console.log('optimized for', target, key);
+      // console.log('optimized for', target, key);
       return alreadyMappedType.get(target).get(key);
     }
 
