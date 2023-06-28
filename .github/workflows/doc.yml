@@ -36,7 +36,7 @@ jobs:
           node-version: '16.x'
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
-      - run: npm build:doc
+      - run: npm run build:doc
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
