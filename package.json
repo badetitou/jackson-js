@@ -44,7 +44,7 @@
     "test:win:test-es5": "ava --concurrency=8 --timeout=3m --verbose",
     "test:win:test-es6": "ava --concurrency=8 --timeout=3m --verbose",
     "test:win": "nyc npm run test:win:test-es5 && nyc --no-clean npm run test:win:test-es6",
-    "coverage": "nyc report --reporter=text-lcov | coveralls"
+    "coverage": "nyc report --reporter=text-lcov"
   },
   "main": "./dist/lib.node.js",
   "browser": "./dist/lib.js",
