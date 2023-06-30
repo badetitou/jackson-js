@@ -5,6 +5,7 @@
 - Remove two array instantiations when performing `mapVirtualPropertyToClassProperty`
 - Invert the condition of `getMetadata` to avoid a not
 - Kill a useless `.replace()` of `getMetadata`
+- Update dependency version (mainly `meriyah`)
 
 ## 1.4.1 - Optimize code
 

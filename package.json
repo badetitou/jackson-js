@@ -52,7 +52,7 @@
   "dependencies": {
     "lodash.clone": "^4.5.0",
     "lodash.clonedeep": "^4.5.0",
-    "meriyah": "^1.9.12",
+    "meriyah": "^4.3.7",
     "reflect-metadata": "^0.1.13"
   },
   "devDependencies": {
