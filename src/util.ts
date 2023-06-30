@@ -770,21 +770,21 @@ export const getMetadata = <T extends JsonDecoratorOptions>(metadataKey: string,
   target: Record<string, any>,
   propertyKey: string | symbol = null,
   context: JsonStringifierParserCommonContext<any>): T => {
-  const jsonjsonDecoratorOptions: JsonDecoratorOptions = (!metadataKey.startsWith('jackson:')) ?
-    findMetadata(metadataKey, target, propertyKey, context) :
-    findMetadataByMetadataKeyWithContext(metadataKey, target, propertyKey, context);
+  const jsonDecoratorOptions: JsonDecoratorOptions = metadataKey.startsWith('jackson:') ?
+    findMetadataByMetadataKeyWithContext(metadataKey, target, propertyKey, context) :
+    findMetadata(metadataKey, target, propertyKey, context) ;
 
-  if (jsonjsonDecoratorOptions != null && context != null && context.decoratorsEnabled != null) {
+  if (jsonDecoratorOptions && context && context.decoratorsEnabled) {
     const decoratorKeys = Object.keys(context.decoratorsEnabled);
     const decoratorKey = decoratorKeys.find((key) =>
       (metadataKey.startsWith('jackson:')) ?
-        metadataKey.replace('jackson:', '').includes(':' + key) :
+        metadataKey.includes(':' + key) :
         metadataKey.startsWith(key));
     if (decoratorKey && typeof context.decoratorsEnabled[decoratorKey] === 'boolean') {
-      jsonjsonDecoratorOptions.enabled = context.decoratorsEnabled[decoratorKey];
+      jsonDecoratorOptions.enabled = context.decoratorsEnabled[decoratorKey];
     }
   }
-  return jsonjsonDecoratorOptions != null && jsonjsonDecoratorOptions.enabled ? jsonjsonDecoratorOptions as T : undefined;
+  return jsonDecoratorOptions && jsonDecoratorOptions.enabled ? jsonDecoratorOptions as T : undefined;
 };
 
 /**

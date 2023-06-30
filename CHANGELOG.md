@@ -1,6 +1,14 @@
+# Changelog
+
+## 1.4.4 - Optimize code
+
+- Remove two array instantiations when performing `mapVirtualPropertyToClassProperty`
+- Invert the condition of `getMetadata` to avoid a not
+- Kill a useless `.replace()` of `getMetadata`
+
 ## 1.4.1 - Optimize code
 
-This release try to optimize a lot the project in order to use it in industrial project
+This release tries to optimize a lot the project in order to use it in industrial projects
 
 ## 1.1.0
 
