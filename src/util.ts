@@ -404,7 +404,7 @@ export const virtualPropertiesToClassPropertiesMapping =
    options: VirtualPropertiesToClassPropertiesMappingOptions): Set<string> => {
     const returnedSet = new Set<string>();
     for (const key of keys) {
-      internVirtualPropertiesToClassPropertiesMapping(target, key, context, options).forEach((el) => returnedSet.add(el));
+      internVirtualPropertyToClassPropertiesMapping(target, key, context, options).forEach((el) => returnedSet.add(el));
     }
     return returnedSet;
   };
@@ -418,7 +418,7 @@ const alreadyMappedType: Map<Record<string, any>, Map<string, Set<string>>> = ne
 /**
  * @internal
  */
-export const internVirtualPropertiesToClassPropertiesMapping =
+export const internVirtualPropertyToClassPropertiesMapping =
   (target: Record<string, any>, key: string, context: JsonStringifierParserCommonContext<any>,
    options: VirtualPropertiesToClassPropertiesMappingOptions): Set<string> => {
 
@@ -486,7 +486,7 @@ export const internVirtualPropertiesToClassPropertiesMapping =
 export const mapVirtualPropertyToClassProperty =
   (target: Record<string, any>, key: string, context: JsonStringifierParserCommonContext<any>,
    options: VirtualPropertiesToClassPropertiesMappingOptions): string =>
-    mapVirtualPropertiesToClassProperties(target, [key], context, options)[0];
+    internVirtualPropertyToClassPropertiesMapping(target, key, context, options).values().next().value;
 
 /**
  * @internal
