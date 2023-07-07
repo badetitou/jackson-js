@@ -63,7 +63,7 @@ test('@JsonSerialize and @JsonDeserialize at property level', t => {
         year: date.getFullYear(),
         month: date.getMonth() + 1,
         day: date.getDate(),
-        formatted: date.toLocaleDateString()
+        formatted: date.toLocaleDateString('en-US')
       };
     }
     static deserializeDate(dateObj, context): Date {
@@ -148,7 +148,7 @@ test('@JsonSerialize and @JsonDeserialize at method level', t => {
         year: date.getFullYear(),
         month: date.getMonth() + 1,
         day: date.getDate(),
-        formatted: date.toLocaleDateString()
+        formatted: date.toLocaleDateString('en-US')
       };
     }
     static deserializeDate(dateObj, context): Date {
@@ -346,7 +346,7 @@ test('Custom serializers and deserializers', t => {
             year: value.date.getFullYear(),
             month: value.date.getMonth() + 1,
             day: value.date.getDate(),
-            formatted: value.date.toLocaleDateString()
+            formatted: value.date.toLocaleDateString('en-US')
           },
           writer: null
         };
