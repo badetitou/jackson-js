@@ -1898,7 +1898,6 @@ test('@JsonTypeInfo with @JsonIdentityInfo and recursive subclasses with polymor
 
   }
 
-  // DelibBudgetaire
   class MyObjectA extends AbstractEntity {
 
     @JsonClassType({type: () => [SuperClass]})
