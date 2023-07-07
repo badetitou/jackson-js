@@ -16,6 +16,7 @@ import {
 import {JsonTypeIdResolver} from '../src/decorators/JsonTypeIdResolver';
 import {JsonGetter} from '../src/decorators/JsonGetter';
 import {JsonSetter} from '../src/decorators/JsonSetter';
+import { JsonIdentityInfo, ObjectIdGenerator } from '../src/decorators/JsonIdentityInfo';
 
 test('@JsonTypeInfo and @JsonSubTypes at class level with JsonTypeInfoAs.PROPERTY without subtypes name', t => {
   @JsonTypeInfo({
@@ -1865,3 +1866,59 @@ test('@JsonTypeInfo with JsonTypeInfoAs.EXTERNAL_PROPERTY and custom property va
   t.is(animals[1].name, 'Merlin');
 });
 
+test('@JsonTypeInfo with @JsonIdentityInfo and recursive subclasses with polymorphism', t => {
+
+
+  @JsonTypeInfo({ use: JsonTypeInfoId.NAME, include: JsonTypeInfoAs.PROPERTY, property: '@type' })
+  @JsonIdentityInfo({ generator: ObjectIdGenerator.IntSequenceGenerator, property: '@id' })
+  @JsonSubTypes({
+    types: [
+      {class: () => SuperClass},
+      {class: () => MyObjectA},
+    ]
+  })
+  class AbstractEntity {
+
+  }
+
+  @JsonSubTypes({
+    types: [
+      {class: () => SousClass},
+    ]
+  })
+  class SuperClass extends AbstractEntity {
+
+    @JsonClassType({type: () => [MyObjectA]})
+    @JsonProperty()
+    objA: MyObjectA;
+
+  }
+
+  class SousClass extends SuperClass {
+
+  }
+
+  // DelibBudgetaire
+  class MyObjectA extends AbstractEntity {
+
+    @JsonClassType({type: () => [SuperClass]})
+    @JsonProperty()
+    sup: SuperClass;
+  }
+
+  const sousClass = new SousClass();
+  const objectA = new MyObjectA();
+  sousClass.objA = objectA;
+  objectA.sup = sousClass;
+
+
+  const objectMapper = new ObjectMapper();
+  const jsonData = objectMapper.stringify<SousClass>(sousClass);
+  console.log(jsonData);
+  t.deepEqual(JSON.parse(jsonData), JSON.parse('{"objA":{"sup":2,"@id":3,"@type":"MyObjectA"},"@id":2,"@type":"SousClass"}'));
+
+  const parsedSousClass = objectMapper.parse<SousClass>(jsonData, {mainCreator: () => [SousClass]});
+  t.assert(parsedSousClass instanceof SousClass);
+  t.assert(parsedSousClass.objA instanceof MyObjectA);
+  t.assert(parsedSousClass.objA.sup === parsedSousClass);
+});

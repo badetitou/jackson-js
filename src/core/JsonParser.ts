@@ -678,7 +678,7 @@ export class JsonParser<T> {
 
       if (globalContext.globalValueAlreadySeen.has(scopedId)) {
         const instance = globalContext.globalValueAlreadySeen.get(scopedId);
-        if (instance.constructor !== currentMainCreator) {
+        if (!(currentMainCreator.prototype.isPrototypeOf(instance))) {
           throw new JacksonError(`Already had Class "${instance.constructor.name}" for id ${id}.`);
         }
         globalContext.globalUnresolvedObjectIdentities.delete(scopedId);

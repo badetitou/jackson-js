@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.5 - more test
+
+- Fix test on non-EN local
+- Improve dealing with circular references and polymorphism
+
 ## 1.4.4 - Optimize code
 
 - Remove two array instantiations when performing `mapVirtualPropertyToClassProperty`
