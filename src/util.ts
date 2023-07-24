@@ -365,7 +365,7 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
   }
   alreadyMappedClassProperties.get(target).set(obj, [...classProperties]);
 
-  return [...classProperties];
+  return alreadyMappedClassProperties.get(target).get(obj);
 };
 
 /**
