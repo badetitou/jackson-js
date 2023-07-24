@@ -1301,17 +1301,16 @@ export class JsonParser<T> {
   private parseJsonManagedReference(replacement: any, context: JsonParserTransformerContext, obj: any, key: string): void {
     const currentMainCreator = context.mainCreator[0];
 
-    let jsonManagedReference: JsonManagedReferenceOptions =
-      getMetadata('JsonManagedReference', currentMainCreator, key, context);
+    let jsonManagedReference: JsonManagedReferenceOptions = this.decoGetMetadata('JsonManagedReference', currentMainCreator, key, context);
     let jsonClassManagedReference: JsonClassTypeOptions =
-      getMetadata('JsonClassType', currentMainCreator, key, context);
+      this.decoGetMetadata('JsonClassType', currentMainCreator, key, context) as JsonClassTypeOptions;
 
     if (!jsonManagedReference) {
       const propertySetter = mapVirtualPropertyToClassProperty(currentMainCreator, key, context, {checkSetters: true});
       jsonManagedReference =
-        getMetadata('JsonManagedReference', currentMainCreator, propertySetter, context);
+        this.decoGetMetadata('JsonManagedReference', currentMainCreator, propertySetter, context);
       jsonClassManagedReference =
-        getMetadata('JsonClassTypeParam:0', currentMainCreator, propertySetter, context);
+        this.decoGetMetadata('JsonClassTypeParam:0', currentMainCreator, propertySetter, context) as JsonClassTypeOptions;
 
       if (jsonManagedReference && !jsonClassManagedReference) {
         // eslint-disable-next-line max-len
@@ -1333,7 +1332,7 @@ export class JsonParser<T> {
           );
 
         const jsonBackReference: JsonBackReferenceOptions =
-          getMetadata('JsonBackReference:' + jsonManagedReference.value,
+          this.decoGetMetadata('JsonBackReference:' + jsonManagedReference.value,
             backReferenceConstructor, null, context);
 
         if (jsonBackReference) {
@@ -1357,7 +1356,7 @@ export class JsonParser<T> {
         }
       } else {
         const jsonBackReference: JsonBackReferenceOptions =
-          getMetadata('JsonBackReference:' + jsonManagedReference.value,
+          this.decoGetMetadata('JsonBackReference:' + jsonManagedReference.value,
             childConstructor, null, context);
         if (jsonBackReference) {
           if (typeof replacement[key][jsonBackReference._propertyKey] === 'function') {

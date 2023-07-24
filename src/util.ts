@@ -239,8 +239,7 @@ const alreadyMappedClassProperties: Map<Record<string, any>, Map<any, string[]>>
 export const getClassProperties = (target: Record<string, any>, obj: any = null, context: JsonStringifierParserCommonContext<any>,
                                    options: GetClassPropertiesOptions = {}): string[] => {
 
-  if (alreadyMappedClassProperties.get(target) !== undefined && alreadyMappedClassProperties.get(target).get(obj) !== undefined) {
-    // console.log('optimized for', target, key);
+  if (alreadyMappedClassProperties.get(target) !== undefined && alreadyMappedClassProperties.get(target).has(obj)) {
     return alreadyMappedClassProperties.get(target).get(obj);
   }
 
@@ -422,7 +421,7 @@ export const internVirtualPropertyToClassPropertiesMapping =
   (target: Record<string, any>, key: string, context: JsonStringifierParserCommonContext<any>,
    options: VirtualPropertiesToClassPropertiesMappingOptions): Set<string> => {
 
-    if (alreadyMappedType.get(target) !== undefined && alreadyMappedType.get(target).get(key) !== undefined) {
+    if (alreadyMappedType.get(target) !== undefined && alreadyMappedType.get(target).has(key)) {
       // console.log('optimized for', target, key);
       return alreadyMappedType.get(target).get(key);
     }
@@ -787,12 +786,19 @@ export const getMetadata = <T extends JsonDecoratorOptions>(metadataKey: string,
   return jsonDecoratorOptions && jsonDecoratorOptions.enabled ? jsonDecoratorOptions as T : undefined;
 };
 
+const findMetadataKeysCache = new Map<Record<string, any>, any[]>();
+
 /**
  * find all metadataKeys considering also _internalDecorators
  * @internal
  */
 export const findMetadataKeys = <T extends JsonDecoratorOptions>(target: Record<string, any>,
   context: JsonStringifierParserCommonContext<any>): any[] => {
+
+  if (findMetadataKeysCache.has(target)) {
+    return findMetadataKeysCache.get(target);
+  }
+
   const metadataKeys = new Set(Reflect.getMetadataKeys(target));
   const contextGroupsWithDefault = [
     ...(context.withContextGroups ? context.withContextGroups : []),
@@ -827,8 +833,8 @@ export const findMetadataKeys = <T extends JsonDecoratorOptions>(target: Record<
       metadataKeys.delete(metadataKey);
     }
   }
-
-  return [...metadataKeys];
+  findMetadataKeysCache.set(target, [...metadataKeys]);
+  return findMetadataKeysCache.get(target);
 };
 
 /**

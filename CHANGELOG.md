@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.7 - Optimize code
+
+- Add cache to `findMetadataKeys`
+- Add cache to `parseJsonManagedReference`
+
 ## 1.4.6 - Optimize code
 
 - Add a cache when performing `propagateDecorators` that avoid calls to `getMetadata`
