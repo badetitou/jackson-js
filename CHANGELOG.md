@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.4.6 - Optimize code
+
+- Add a cache when performing `propagateDecorators` that avoid calls to `getMetadata`
+    > This cache method might be usefull in the future for other optimization
+
 ## 1.4.5 - more test
 
 - Fix test on non-EN local

@@ -92,6 +92,12 @@ export class JsonParser<T> {
   defaultContext: JsonParserContext = {};
 
   /**
+   * Cache propagateDecorators
+   */
+  propagateDecoratorsCache:
+  Map<Record<string, any>, Map<string, Map<string|symbol, JsonDecoratorOptions>>> = new Map();
+
+  /**
    *
    * @param defaultContext - Default context to use during deserialization.
    */
@@ -538,8 +544,8 @@ export class JsonParser<T> {
       const indexOfParam = metadataKey.indexOf('Param:');
 
       const jsonDecoratorOptions: JsonDecoratorOptions = indexOfParam !== -1 ?
-        getMetadata(metadataKey, currentMainCreator, methodName, context) :
-        getMetadata(metadataKey, currentMainCreator, key, context);
+        this.decoGetMetadata(metadataKey, currentMainCreator, methodName, context) :
+        this.decoGetMetadata(metadataKey, currentMainCreator, key, context);
 
       if (jsonDecoratorOptions) {
         if (metadataKey.includes('Param:') && deepestClass != null && methodName != null && argumentIndex != null) {
@@ -581,8 +587,8 @@ export class JsonParser<T> {
       const indexOfParam = metadataKey.indexOf('Param:');
 
       const jsonDecoratorOptions: JsonDecoratorOptions = indexOfParam !== -1 ?
-        getMetadata(metadataKey, currentMainCreator, methodName, context) :
-        getMetadata(metadataKey, currentMainCreator, key, context);
+        this.decoGetMetadata(metadataKey, currentMainCreator, methodName, context) :
+        this.decoGetMetadata(metadataKey, currentMainCreator, key, context);
 
       if (jsonDecoratorOptions) {
         if (metadataKey.includes('Param:') && firstClass != null && methodName != null && argumentIndex != null) {
@@ -625,6 +631,30 @@ export class JsonParser<T> {
     if (firstClass != null && decoratorsNameFoundForFirstClass.length > 0) {
       context._internalDecorators.set(firstClass, decoratorsToBeAppliedForFirstClass);
     }
+  }
+
+  /**
+   * This method implements a cache that can be used instead of calling directly the getMetadata of util.ts
+   */
+  private decoGetMetadata(metadataKey: string,
+                          target: ClassType<any>,
+                          propertyKey: string | symbol = null,
+                          context: JsonParserTransformerContext) {
+    if (this.propagateDecoratorsCache.has(target)
+      && this.propagateDecoratorsCache.get(target).has(metadataKey)
+      && this.propagateDecoratorsCache.get(target).get(metadataKey).has(propertyKey)) {
+      return this.propagateDecoratorsCache.get(target).get(metadataKey).get(propertyKey);
+    }
+
+    if (this.propagateDecoratorsCache.get(target) === undefined) {
+      this.propagateDecoratorsCache.set(target, new Map<string, Map<string|symbol, JsonDecoratorOptions>>());
+    }
+    if (this.propagateDecoratorsCache.get(target).get(metadataKey) === undefined) {
+      this.propagateDecoratorsCache.get(target).set(metadataKey, new Map<string|symbol, JsonDecoratorOptions>());
+    }
+    this.propagateDecoratorsCache.get(target).get(metadataKey).set(propertyKey, getMetadata(metadataKey, target, propertyKey, context));
+    return this.propagateDecoratorsCache.get(target).get(metadataKey).get(propertyKey);
+
   }
 
   /**
