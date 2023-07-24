@@ -2,8 +2,7 @@
 
 ## 1.4.7 - Optimize code
 
-- Add cache to `findMetadataKeys`
-- Add cache to `parseJsonManagedReference`
+- Add cache more or less for every call to `getMetadata` in JsonParser
 
 ## 1.4.6 - Optimize code
 

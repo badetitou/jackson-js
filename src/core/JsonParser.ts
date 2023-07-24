@@ -544,13 +544,13 @@ export class JsonParser<T> {
       const indexOfParam = metadataKey.indexOf('Param:');
 
       const jsonDecoratorOptions: JsonDecoratorOptions = indexOfParam !== -1 ?
-        this.decoGetMetadata(metadataKey, currentMainCreator, methodName, context) :
-        this.decoGetMetadata(metadataKey, currentMainCreator, key, context);
+        this.cachedGetMetadata(metadataKey, currentMainCreator, methodName, context) :
+        this.cachedGetMetadata(metadataKey, currentMainCreator, key, context);
 
       if (jsonDecoratorOptions) {
         if (metadataKey.includes('Param:') && deepestClass != null && methodName != null && argumentIndex != null) {
           const jsonClassParam: JsonClassTypeOptions =
-            getMetadata('JsonClassTypeParam:' + argumentIndex, currentMainCreator, methodName, context);
+            this.cachedGetMetadata('JsonClassTypeParam:' + argumentIndex, currentMainCreator, methodName, context) as JsonClassTypeOptions;
 
           const metadataKeysWithContext =
             makeMetadataKeysWithContext(metadataKey.substring(0, indexOfParam),
@@ -587,13 +587,13 @@ export class JsonParser<T> {
       const indexOfParam = metadataKey.indexOf('Param:');
 
       const jsonDecoratorOptions: JsonDecoratorOptions = indexOfParam !== -1 ?
-        this.decoGetMetadata(metadataKey, currentMainCreator, methodName, context) :
-        this.decoGetMetadata(metadataKey, currentMainCreator, key, context);
+        this.cachedGetMetadata(metadataKey, currentMainCreator, methodName, context) :
+        this.cachedGetMetadata(metadataKey, currentMainCreator, key, context);
 
       if (jsonDecoratorOptions) {
         if (metadataKey.includes('Param:') && firstClass != null && methodName != null && argumentIndex != null) {
           const jsonClassParam: JsonClassTypeOptions =
-            getMetadata('JsonClassTypeParam:' + argumentIndex, currentMainCreator, methodName, context);
+            this.cachedGetMetadata('JsonClassTypeParam:' + argumentIndex, currentMainCreator, methodName, context) as JsonClassTypeOptions;
 
           const metadataKeysWithContext =
             makeMetadataKeysWithContext(metadataKey.substring(0, indexOfParam),
@@ -636,10 +636,10 @@ export class JsonParser<T> {
   /**
    * This method implements a cache that can be used instead of calling directly the getMetadata of util.ts
    */
-  private decoGetMetadata(metadataKey: string,
-                          target: ClassType<any>,
-                          propertyKey: string | symbol = null,
-                          context: JsonParserTransformerContext) {
+  private cachedGetMetadata(metadataKey: string,
+                            target: ClassType<any>,
+                            propertyKey: string | symbol = null,
+                            context: JsonParserTransformerContext) {
     if (this.propagateDecoratorsCache.has(target)
       && this.propagateDecoratorsCache.get(target).has(metadataKey)
       && this.propagateDecoratorsCache.get(target).get(metadataKey).has(propertyKey)) {
@@ -698,7 +698,7 @@ export class JsonParser<T> {
                                  globalContext: JsonParserGlobalContext): undefined | null | any {
     const currentMainCreator = context.mainCreator[0];
     const jsonIdentityInfo: JsonIdentityInfoOptions =
-      getMetadata('JsonIdentityInfo', currentMainCreator, null, context);
+      this.cachedGetMetadata('JsonIdentityInfo', currentMainCreator, null, context) as JsonIdentityInfoOptions;
 
     if (jsonIdentityInfo) {
       const id: string = typeof value === 'object' ? value[jsonIdentityInfo.property] : value;
@@ -750,13 +750,13 @@ export class JsonParser<T> {
       hasMetadata(jsonCreatorMetadataKey, currentMainCreator, null, context);
 
     const jsonCreator: JsonCreatorOptions | ClassType<any> = (hasJsonCreator) ?
-      getMetadata(jsonCreatorMetadataKey, currentMainCreator, null, context) :
+      this.cachedGetMetadata(jsonCreatorMetadataKey, currentMainCreator, null, context) :
       currentMainCreator;
 
     const jsonCreatorMode = ('mode' in jsonCreator && jsonCreator.mode) ? jsonCreator.mode : undefined;
 
     const jsonIgnoreProperties: JsonIgnorePropertiesOptions =
-      getMetadata('JsonIgnoreProperties', currentMainCreator, null, context);
+      this.cachedGetMetadata('JsonIgnoreProperties', currentMainCreator, null, context);
 
     const method: any = (hasJsonCreator) ?
       (((jsonCreator as JsonCreatorOptions)._ctor) ?
@@ -800,7 +800,7 @@ export class JsonParser<T> {
 
     const jsonAppendAttributesToBeExcluded = [];
     const jsonAppend: JsonAppendOptions =
-      getMetadata('JsonAppend', currentMainCreator, null, context);
+      this.cachedGetMetadata('JsonAppend', currentMainCreator, null, context);
     if (jsonAppend && jsonAppend.attrs && jsonAppend.attrs.length > 0) {
       for (const attr of jsonAppend.attrs) {
         if (attr.value) {
@@ -901,10 +901,10 @@ export class JsonParser<T> {
 
     let propertySetter;
     let jsonInject: JsonInjectOptions =
-      getMetadata('JsonInject', currentMainCreator, key, context);
+      this.cachedGetMetadata('JsonInject', currentMainCreator, key, context);
     if (!jsonInject) {
       propertySetter = mapVirtualPropertyToClassProperty(currentMainCreator, key, context, {checkSetters: true});
-      jsonInject = getMetadata('JsonInject', currentMainCreator, propertySetter, context);
+      jsonInject = this.cachedGetMetadata('JsonInject', currentMainCreator, propertySetter, context);
     }
     if ( jsonInject && (!jsonInject.useInput || (jsonInject.useInput && replacement[key] == null && obj[key] == null)) ) {
       const injectableValue = context.injectableValues[jsonInject.value];
@@ -930,7 +930,7 @@ export class JsonParser<T> {
     const currentMainCreator = context.mainCreator[0];
 
     const jsonVirtualProperty: JsonPropertyOptions | JsonSetterOptions =
-      getMetadata('JsonVirtualProperty:' + key, currentMainCreator, null, context);
+      this.cachedGetMetadata('JsonVirtualProperty:' + key, currentMainCreator, null, context);
 
     if (('access' in jsonVirtualProperty && jsonVirtualProperty.access !== JsonPropertyAccess.READ_ONLY) ||
       !('access' in jsonVirtualProperty)) {
@@ -1069,16 +1069,16 @@ export class JsonParser<T> {
       }
 
       const jsonInject: JsonInjectOptions =
-        getMetadata('JsonInjectParam:' + propIndex, currentMainCreator, methodName, context);
+        this.cachedGetMetadata('JsonInjectParam:' + propIndex, currentMainCreator, methodName, context);
 
       if (!jsonInject || (jsonInject && jsonInject.useInput)) {
         const jsonProperty: JsonPropertyOptions =
-          getMetadata('JsonPropertyParam:' + propIndex, currentMainCreator, methodName, context);
+          this.cachedGetMetadata('JsonPropertyParam:' + propIndex, currentMainCreator, methodName, context);
 
         let mappedKey: string = jsonProperty != null ? jsonProperty.value : null;
         if (!mappedKey) {
           const jsonAlias: JsonAliasOptions =
-            getMetadata('JsonAliasParam:' + propIndex, currentMainCreator, methodName, context);
+            this.cachedGetMetadata('JsonAliasParam:' + propIndex, currentMainCreator, methodName, context) as JsonAliasOptions;
 
           if (jsonAlias && jsonAlias.values) {
             mappedKey = jsonAlias.values.find((alias) => Object.hasOwnProperty.call(obj, alias));
@@ -1146,7 +1146,7 @@ export class JsonParser<T> {
         const realKey = metadataKey.split(
           metadataKey.includes(':JsonVirtualProperty:') ? ':JsonVirtualProperty:' : ':JsonAlias:')[1];
         const jsonVirtualProperty: JsonPropertyOptions | JsonSetterOptions =
-          getMetadata(metadataKey, currentMainCreator, null, context);
+          this.cachedGetMetadata(metadataKey, currentMainCreator, null, context);
 
         if (jsonVirtualProperty && jsonVirtualProperty._descriptor != null &&
           typeof jsonVirtualProperty._descriptor.value === 'function' &&
@@ -1155,7 +1155,7 @@ export class JsonParser<T> {
         }
 
         const jsonAlias: JsonAliasOptions =
-          getMetadata(metadataKey, currentMainCreator, null, context);
+          this.cachedGetMetadata(metadataKey, currentMainCreator, null, context) as JsonAliasOptions;
 
         const isIgnored =
           jsonVirtualProperty && 'access' in jsonVirtualProperty && jsonVirtualProperty.access === JsonPropertyAccess.READ_ONLY;
@@ -1211,7 +1211,7 @@ export class JsonParser<T> {
   private parseJsonRootName(replacement: any, context: JsonParserTransformerContext): any {
     if (context.features.deserialization.UNWRAP_ROOT_VALUE) {
       const jsonRootName: JsonRootNameOptions =
-        getMetadata('JsonRootName', context.mainCreator[0], null, context);
+        this.cachedGetMetadata('JsonRootName', context.mainCreator[0], null, context);
       const wrapKey = (jsonRootName && jsonRootName.value) ? jsonRootName.value : context.mainCreator[0].constructor.name;
       if (!(wrapKey in replacement) || Object.keys(replacement).length !== 1) {
         // eslint-disable-next-line max-len
@@ -1237,11 +1237,11 @@ export class JsonParser<T> {
     let jsonClass: JsonClassTypeOptions;
     if (methodName != null && argumentIndex != null) {
       jsonClass =
-        getMetadata('JsonClassTypeParam:' + argumentIndex, context.mainCreator[0], methodName, context);
+        this.cachedGetMetadata('JsonClassTypeParam:' + argumentIndex, context.mainCreator[0], methodName, context) as JsonClassTypeOptions;
     }
     if (!jsonClass) {
       // if @JsonClass() is not found at parameter level, try to get it from the class properties
-      jsonClass = getMetadata('JsonClassType', context.mainCreator[0], key, context);
+      jsonClass = this.cachedGetMetadata('JsonClassType', context.mainCreator[0], key, context) as JsonClassTypeOptions;
     }
     this.propagateDecorators(jsonClass, obj, key, context, methodName, argumentIndex);
 
@@ -1301,16 +1301,17 @@ export class JsonParser<T> {
   private parseJsonManagedReference(replacement: any, context: JsonParserTransformerContext, obj: any, key: string): void {
     const currentMainCreator = context.mainCreator[0];
 
-    let jsonManagedReference: JsonManagedReferenceOptions = this.decoGetMetadata('JsonManagedReference', currentMainCreator, key, context);
+    let jsonManagedReference: JsonManagedReferenceOptions =
+      this.cachedGetMetadata('JsonManagedReference', currentMainCreator, key, context);
     let jsonClassManagedReference: JsonClassTypeOptions =
-      this.decoGetMetadata('JsonClassType', currentMainCreator, key, context) as JsonClassTypeOptions;
+      this.cachedGetMetadata('JsonClassType', currentMainCreator, key, context) as JsonClassTypeOptions;
 
     if (!jsonManagedReference) {
       const propertySetter = mapVirtualPropertyToClassProperty(currentMainCreator, key, context, {checkSetters: true});
       jsonManagedReference =
-        this.decoGetMetadata('JsonManagedReference', currentMainCreator, propertySetter, context);
+        this.cachedGetMetadata('JsonManagedReference', currentMainCreator, propertySetter, context);
       jsonClassManagedReference =
-        this.decoGetMetadata('JsonClassTypeParam:0', currentMainCreator, propertySetter, context) as JsonClassTypeOptions;
+        this.cachedGetMetadata('JsonClassTypeParam:0', currentMainCreator, propertySetter, context) as JsonClassTypeOptions;
 
       if (jsonManagedReference && !jsonClassManagedReference) {
         // eslint-disable-next-line max-len
@@ -1332,7 +1333,7 @@ export class JsonParser<T> {
           );
 
         const jsonBackReference: JsonBackReferenceOptions =
-          this.decoGetMetadata('JsonBackReference:' + jsonManagedReference.value,
+          this.cachedGetMetadata('JsonBackReference:' + jsonManagedReference.value,
             backReferenceConstructor, null, context);
 
         if (jsonBackReference) {
@@ -1356,7 +1357,7 @@ export class JsonParser<T> {
         }
       } else {
         const jsonBackReference: JsonBackReferenceOptions =
-          this.decoGetMetadata('JsonBackReference:' + jsonManagedReference.value,
+          this.cachedGetMetadata('JsonBackReference:' + jsonManagedReference.value,
             childConstructor, null, context);
         if (jsonBackReference) {
           if (typeof replacement[key][jsonBackReference._propertyKey] === 'function') {
@@ -1381,7 +1382,7 @@ export class JsonParser<T> {
    */
   private parseJsonAnySetter(replacement: any, obj: any, key: string, context: JsonParserTransformerContext): void {
     const jsonAnySetter: JsonAnySetterOptions =
-      getMetadata('JsonAnySetter', replacement.constructor, null, context);
+      this.cachedGetMetadata('JsonAnySetter', replacement.constructor, null, context);
     if (jsonAnySetter && replacement[jsonAnySetter._propertyKey]) {
       if (typeof replacement[jsonAnySetter._propertyKey] === 'function') {
         replacement[jsonAnySetter._propertyKey](key, obj[key]);
@@ -1398,7 +1399,7 @@ export class JsonParser<T> {
    */
   private parseJsonDeserializeClass(replacement: any, context: JsonParserTransformerContext): any {
     const jsonDeserialize: JsonDeserializeOptions =
-      getMetadata('JsonDeserialize', context.mainCreator[0], null, context);
+      this.cachedGetMetadata('JsonDeserialize', context.mainCreator[0], null, context);
     if (jsonDeserialize && jsonDeserialize.using) {
       return jsonDeserialize.using(replacement, context);
     }
@@ -1415,7 +1416,7 @@ export class JsonParser<T> {
     const currentMainCreator = context.mainCreator[0];
 
     const jsonDeserialize: JsonDeserializeOptions =
-      getMetadata('JsonDeserialize', currentMainCreator, key, context);
+      this.cachedGetMetadata('JsonDeserialize', currentMainCreator, key, context);
     if (jsonDeserialize && jsonDeserialize.using) {
       replacement[key] = jsonDeserialize.using(replacement[key], context);
     }
@@ -1428,16 +1429,15 @@ export class JsonParser<T> {
    */
   private parseHasJsonIgnore(context: JsonParserTransformerContext, key: string): boolean {
     const currentMainCreator = context.mainCreator[0];
-
     const hasJsonIgnore =
       hasMetadata('JsonIgnore', currentMainCreator, key, context);
 
     if (!hasJsonIgnore) {
       const jsonIgnoreProperties: JsonIgnorePropertiesOptions =
-        getMetadata('JsonIgnoreProperties', currentMainCreator, null, context);
+        this.cachedGetMetadata('JsonIgnoreProperties', currentMainCreator, null, context);
       if (jsonIgnoreProperties) {
         const jsonVirtualProperty: JsonPropertyOptions | JsonGetterOptions =
-          getMetadata('JsonVirtualProperty:' + key, currentMainCreator, null, context);
+          this.cachedGetMetadata('JsonVirtualProperty:' + key, currentMainCreator, null, context);
 
         if (jsonVirtualProperty && jsonIgnoreProperties.value.includes(jsonVirtualProperty.value)) {
           if (jsonVirtualProperty._descriptor != null && typeof jsonVirtualProperty._descriptor.value === 'function' &&
@@ -1469,7 +1469,7 @@ export class JsonParser<T> {
   private parseJsonTypeInfo(obj: any, parent: any, context: JsonParserTransformerContext): any {
     const currentMainCreator = context.mainCreator[0];
     const jsonTypeInfo: JsonTypeInfoOptions =
-      getMetadata('JsonTypeInfo', currentMainCreator, null, context);
+      this.cachedGetMetadata('JsonTypeInfo', currentMainCreator, null, context) as JsonTypeInfoOptions;
 
     if (jsonTypeInfo) {
       let jsonTypeCtor: ClassType<any>;
@@ -1523,13 +1523,13 @@ export class JsonParser<T> {
       }
 
       const jsonTypeIdResolver: JsonTypeIdResolverOptions =
-        getMetadata('JsonTypeIdResolver', currentMainCreator, null, context);
+        this.cachedGetMetadata('JsonTypeIdResolver', currentMainCreator, null, context) as JsonTypeIdResolverOptions;
       if (jsonTypeIdResolver && jsonTypeIdResolver.resolver) {
         jsonTypeCtor = jsonTypeIdResolver.resolver.typeFromId(jsonTypeInfoProperty, context);
       }
 
       const jsonSubTypes: JsonSubTypesOptions =
-        getMetadata('JsonSubTypes', currentMainCreator, null, context);
+        this.cachedGetMetadata('JsonSubTypes', currentMainCreator, null, context) as JsonSubTypesOptions;
 
       if (!jsonTypeCtor && jsonTypeInfoProperty != null) {
         if (jsonSubTypes && jsonSubTypes.types && jsonSubTypes.types.length > 0) {
@@ -1587,9 +1587,9 @@ export class JsonParser<T> {
 
     if (context.withViews) {
       let jsonView: JsonViewOptions =
-        getMetadata('JsonView', currentMainCreator, key, context);
+        this.cachedGetMetadata('JsonView', currentMainCreator, key, context) as JsonViewOptions;
       if (!jsonView) {
-        jsonView = getMetadata('JsonView', currentMainCreator, null, context);
+        jsonView = this.cachedGetMetadata('JsonView', currentMainCreator, null, context) as JsonViewOptions;
       }
 
       if (jsonView && jsonView.value) {
@@ -1612,7 +1612,7 @@ export class JsonParser<T> {
 
     if (context.withViews) {
       const jsonView: JsonViewOptions =
-        getMetadata('JsonViewParam:' + argumentIndex, currentMainCreator, methodName, context);
+        this.cachedGetMetadata('JsonViewParam:' + argumentIndex, currentMainCreator, methodName, context) as JsonViewOptions;
 
       if (jsonView && jsonView.value) {
         return this.parseIsIncludedByJsonView(jsonView, context);
@@ -1654,7 +1654,7 @@ export class JsonParser<T> {
         const realKey = metadataKey.split(':JsonUnwrapped:')[1];
 
         const jsonUnwrapped: JsonUnwrappedOptions =
-          getMetadata(metadataKey, currentMainCreator, null, context);
+          this.cachedGetMetadata(metadataKey, currentMainCreator, null, context);
         if (jsonUnwrapped._descriptor != null &&
           typeof jsonUnwrapped._descriptor.value === 'function' &&
           !realKey.startsWith('set')) {
@@ -1662,7 +1662,7 @@ export class JsonParser<T> {
         }
 
         const jsonClass: JsonClassTypeOptions =
-          getMetadata('JsonClassType', currentMainCreator, realKey, context);
+          this.cachedGetMetadata('JsonClassType', currentMainCreator, realKey, context) as JsonClassTypeOptions;
         if (!jsonClass) {
           // eslint-disable-next-line max-len
           throw new JacksonError(`@JsonUnwrapped() requires use of @JsonClass() for deserialization at ${currentMainCreator.name}["${realKey}"])`);
@@ -1698,7 +1698,7 @@ export class JsonParser<T> {
   private parseJsonIdentityInfo(replacement: any, obj: any, context: JsonParserTransformerContext,
                                 globalContext: JsonParserGlobalContext): void {
     const jsonIdentityInfo: JsonIdentityInfoOptions =
-      getMetadata('JsonIdentityInfo', context.mainCreator[0], null, context);
+      this.cachedGetMetadata('JsonIdentityInfo', context.mainCreator[0], null, context) as JsonIdentityInfoOptions;
 
     if (jsonIdentityInfo) {
       const id: string = obj[jsonIdentityInfo.property];
@@ -1722,7 +1722,7 @@ export class JsonParser<T> {
   private parseIterable(iterable: any, key: string, context: JsonParserTransformerContext,
                         globalContext: JsonParserGlobalContext): any {
     const jsonDeserialize: JsonDeserializeOptions =
-      getMetadata('JsonDeserialize',
+      this.cachedGetMetadata('JsonDeserialize',
         context._propertyParentCreator,
         key, context);
 
@@ -1798,7 +1798,7 @@ export class JsonParser<T> {
     const currentCreator = currentCreators[0];
 
     const jsonDeserialize: JsonDeserializeOptions =
-      getMetadata('JsonDeserialize', context._propertyParentCreator, key, context);
+      this.cachedGetMetadata('JsonDeserialize', context._propertyParentCreator, key, context);
 
     let map: Map<any, any> | Record<any, any>;
 
@@ -1878,7 +1878,7 @@ export class JsonParser<T> {
    */
   private parseJsonNaming(obj: any, context: JsonParserTransformerContext): void {
     const jsonNamingOptions: JsonNamingOptions =
-      getMetadata('JsonNaming', context.mainCreator[0], null, context);
+      this.cachedGetMetadata('JsonNaming', context.mainCreator[0], null, context)as JsonNamingOptions;
     if (jsonNamingOptions && jsonNamingOptions.strategy != null) {
       const keys = Object.keys(obj);
       const classProperties = new Set<string>(getClassProperties(context.mainCreator[0], null, context, {
