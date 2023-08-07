@@ -1143,8 +1143,6 @@ export class JsonParser<T> {
     for (const metadataKey of creatorMetadataKeys) {
       if (metadataKey.includes(':JsonVirtualProperty:') || metadataKey.includes(':JsonAlias:')) {
 
-        const realKey = metadataKey.split(
-          metadataKey.includes(':JsonVirtualProperty:') ? ':JsonVirtualProperty:' : ':JsonAlias:')[1];
         const jsonVirtualProperty: JsonPropertyOptions | JsonSetterOptions =
           this.cachedGetMetadata(metadataKey, currentMainCreator, null, context);
 
@@ -1154,8 +1152,8 @@ export class JsonParser<T> {
           continue;
         }
 
-        const jsonAlias: JsonAliasOptions =
-          this.cachedGetMetadata(metadataKey, currentMainCreator, null, context) as JsonAliasOptions;
+        const realKey = metadataKey.split(
+          metadataKey.includes(':JsonVirtualProperty:') ? ':JsonVirtualProperty:' : ':JsonAlias:')[1];
 
         const isIgnored =
           jsonVirtualProperty && 'access' in jsonVirtualProperty && jsonVirtualProperty.access === JsonPropertyAccess.READ_ONLY;
@@ -1171,8 +1169,8 @@ export class JsonParser<T> {
             throw new JacksonError(`Required property "${jsonVirtualProperty.value}" not found at [Source '${JSON.stringify(replacement)}']`);
           }
         }
-        if (jsonAlias && jsonAlias.values && !isIgnored) {
-          for (const alias of jsonAlias.values) {
+        if (jsonVirtualProperty && (jsonVirtualProperty as JsonAliasOptions).values && !isIgnored) {
+          for (const alias of (jsonVirtualProperty as JsonAliasOptions).values) {
             if (Object.hasOwnProperty.call(replacement, alias)) {
               replacement[realKey] = replacement[alias];
               if (realKey !== alias) {
