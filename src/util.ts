@@ -239,9 +239,8 @@ const alreadyMappedClassProperties: Map<Record<string, any>, Map<any, string[]>>
 export const getClassProperties = (target: Record<string, any>, obj: any = null, context: JsonStringifierParserCommonContext<any>,
                                    options: GetClassPropertiesOptions = {}): string[] => {
 
-  const cachedProperties = alreadyMappedClassProperties.get(target)?.get(obj);
-  if (cachedProperties) {
-    return cachedProperties;
+  if (alreadyMappedClassProperties.has(target) && alreadyMappedClassProperties.get(target).has(obj))  {
+    return alreadyMappedClassProperties.get(target).get(obj);
   }
 
   options = {

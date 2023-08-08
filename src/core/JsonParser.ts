@@ -646,15 +646,14 @@ export class JsonParser<T> {
       return this.propagateDecoratorsCache.get(target).get(metadataKey).get(propertyKey);
     }
 
-    if (this.propagateDecoratorsCache.get(target) === undefined) {
+    if (!this.propagateDecoratorsCache.has(target)) {
       this.propagateDecoratorsCache.set(target, new Map<string, Map<string|symbol, JsonDecoratorOptions>>());
     }
-    if (this.propagateDecoratorsCache.get(target).get(metadataKey) === undefined) {
+    if (!this.propagateDecoratorsCache.get(target).has(metadataKey)) {
       this.propagateDecoratorsCache.get(target).set(metadataKey, new Map<string|symbol, JsonDecoratorOptions>());
     }
-    this.propagateDecoratorsCache.get(target).get(metadataKey).set(propertyKey, getMetadata(metadataKey, target, propertyKey, context));
-    return this.propagateDecoratorsCache.get(target).get(metadataKey).get(propertyKey);
-
+    return this.propagateDecoratorsCache.get(target).get(metadataKey)
+      .set(propertyKey, getMetadata(metadataKey, target, propertyKey, context)).get(propertyKey);
   }
 
   /**
