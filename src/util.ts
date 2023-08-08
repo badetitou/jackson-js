@@ -239,7 +239,7 @@ const alreadyMappedClassProperties: Map<Record<string, any>, Map<any, string[]>>
 export const getClassProperties = (target: Record<string, any>, obj: any = null, context: JsonStringifierParserCommonContext<any>,
                                    options: GetClassPropertiesOptions = {}): string[] => {
 
-  if (alreadyMappedClassProperties.get(target) !== undefined && alreadyMappedClassProperties.get(target).has(obj)) {
+  if (alreadyMappedClassProperties.has(target) && alreadyMappedClassProperties.get(target).has(obj)) {
     return alreadyMappedClassProperties.get(target).get(obj);
   }
 
@@ -270,24 +270,24 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
   }
 
   const keysToBeDeleted = new Set<string>();
-  const metadataKeys = Reflect.getMetadataKeys(target);
+  const metadataKeys = cachedReflectGetMetadataKeys(target);
   let classProperties: Set<string> = new Set(objKeys);
 
   for (const metadataKey of metadataKeys) {
     if (metadataKey.startsWith('jackson:')) {
 
-      const metadataKeyWithoutJacksonPrefix = metadataKey.replace('jackson:', '');
+      // const metadataKeyWithoutJacksonPrefix = metadataKey.replace('jackson:', '');
 
-      if (metadataKeyWithoutJacksonPrefix.includes(':JsonVirtualProperty:') ||
-        (metadataKeyWithoutJacksonPrefix.includes(':JsonAlias:') && options.withJsonAliases)) {
+      if (metadataKey.includes(':JsonVirtualProperty:') ||
+        (metadataKey.includes(':JsonAlias:') && options.withJsonAliases)) {
         let metadataKeyFoundInContext = false;
         for (const contextGroup of contextGroupsWithDefault) {
 
-          const suffix = metadataKeyWithoutJacksonPrefix
-            .split((metadataKeyWithoutJacksonPrefix.includes(':JsonVirtualProperty:')) ? ':JsonVirtualProperty:' : ':JsonAlias:')[1];
+          const suffix = metadataKey
+            .split((metadataKey.includes(':JsonVirtualProperty:')) ? ':JsonVirtualProperty:' : ':JsonAlias:')[1];
 
           const metadataKeyWithContext = makeMetadataKeyWithContext(
-            (metadataKeyWithoutJacksonPrefix.includes(':JsonVirtualProperty:')) ? 'JsonVirtualProperty' : 'JsonAlias', {
+            (metadataKey.includes(':JsonVirtualProperty:')) ? 'JsonVirtualProperty' : 'JsonAlias', {
               contextGroup,
               suffix
             });
@@ -302,7 +302,7 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
         }
       }
 
-      if (metadataKeyWithoutJacksonPrefix.includes(':JsonVirtualProperty:')) {
+      if (metadataKey.includes(':JsonVirtualProperty:')) {
         const jsonVirtualProperty: JsonPropertyOptions | JsonGetterOptions | JsonSetterOptions =
           Reflect.getMetadata(metadataKey, target);
 
@@ -332,8 +332,8 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
         if (options.withJsonVirtualPropertyValues && jsonVirtualProperty.value != null) {
           classProperties.add(jsonVirtualProperty.value);
         }
-      } else if (metadataKeyWithoutJacksonPrefix.includes(':JsonAlias:') && options.withJsonAliases) {
-        const propertyKey = metadataKeyWithoutJacksonPrefix.split(':JsonAlias:')[1];
+      } else if (metadataKey.includes(':JsonAlias:') && options.withJsonAliases) {
+        const propertyKey = metadataKey.split(':JsonAlias:')[1];
         classProperties.add(propertyKey);
         const jsonAlias: JsonAliasOptions = Reflect.getMetadata(metadataKey, target);
         if (jsonAlias.values != null) {
@@ -422,14 +422,13 @@ export const internVirtualPropertyToClassPropertiesMapping =
    options: VirtualPropertiesToClassPropertiesMappingOptions): Set<string> => {
 
     if (alreadyMappedType.get(target) !== undefined && alreadyMappedType.get(target).has(key)) {
-      // console.log('optimized for', target, key);
       return alreadyMappedType.get(target).get(key);
     }
 
     const { checkGetters = false, checkSetters = false } = options;
 
     const contextGroupsWithDefault = (context.withContextGroups || []).concat(DefaultContextGroup);
-    const metadataKeys = Reflect.getMetadataKeys(target);
+    const metadataKeys = cachedReflectGetMetadataKeys(target);
     const propertiesMapping: Set<string> = new Set();
 
     let getterOrSetterFound = false;
@@ -799,7 +798,7 @@ export const findMetadataKeys = <T extends JsonDecoratorOptions>(target: Record<
     return findMetadataKeysCache.get(target);
   }
 
-  const metadataKeys = new Set(Reflect.getMetadataKeys(target));
+  const metadataKeys = new Set(cachedReflectGetMetadataKeys(target));
   const contextGroupsWithDefault = [
     ...(context.withContextGroups ? context.withContextGroups : []),
     DefaultContextGroup
@@ -1006,3 +1005,18 @@ export const castObjLiteral = (target: any, value: any): any => {
  */
 export const sortMappersByOrder = <T>(mappers: CustomMapper<T>[]): CustomMapper<T>[] =>
   mappers.sort((a, b) => a.order - b.order > 0 ? 1 : -1);
+
+
+
+// Cache call of Reflect.getMetadataKeys
+const reflectGetMetadataKeysCache = new Map<Record<string, any>, any[]>();
+
+/**
+ * @internal
+ */
+const cachedReflectGetMetadataKeys = (target: Record<string, any>): any[] => {
+  if (reflectGetMetadataKeysCache.has(target)) {
+    return reflectGetMetadataKeysCache.get(target);
+  }
+  return reflectGetMetadataKeysCache.set(target, Reflect.getMetadataKeys(target)).get(target);
+};
