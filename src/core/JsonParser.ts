@@ -281,7 +281,6 @@ export class JsonParser<T> {
         ...context,
         ...context.forType.get(context.mainCreator[0])
       };
-      context = cloneDeep(context);
     }
 
     const currentMainCreator = context.mainCreator[0];
@@ -1151,9 +1150,7 @@ export class JsonParser<T> {
           continue;
         }
 
-        const realKey = metadataKey
-          .split(/:JsonVirtualProperty:|:JsonAlias:/)[1];
-          // .split(metadataKey.includes(':JsonVirtualProperty:') ? ':JsonVirtualProperty:' : ':JsonAlias:')[1];
+        const realKey = metadataKey.split(/:JsonVirtualProperty:|:JsonAlias:/)[1];
 
         const isIgnored =
           jsonVirtualProperty && 'access' in jsonVirtualProperty && jsonVirtualProperty.access === JsonPropertyAccess.READ_ONLY;
