@@ -275,9 +275,6 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
 
   for (const metadataKey of metadataKeys) {
     if (metadataKey.startsWith('jackson:')) {
-
-      // const metadataKeyWithoutJacksonPrefix = metadataKey.replace('jackson:', '');
-
       if (metadataKey.includes(':JsonVirtualProperty:') ||
         (metadataKey.includes(':JsonAlias:') && options.withJsonAliases)) {
         let metadataKeyFoundInContext = false;
@@ -304,7 +301,7 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
 
       if (metadataKey.includes(':JsonVirtualProperty:')) {
         const jsonVirtualProperty: JsonPropertyOptions | JsonGetterOptions | JsonSetterOptions =
-          Reflect.getMetadata(metadataKey, target);
+          cachedReflectGetMetadataKeyForTarget(metadataKey, target);
 
         if (jsonVirtualProperty && jsonVirtualProperty._descriptor != null && typeof jsonVirtualProperty._descriptor.value === 'function') {
           if (jsonVirtualProperty._propertyKey.startsWith('get')) {
@@ -335,7 +332,7 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
       } else if (metadataKey.includes(':JsonAlias:') && options.withJsonAliases) {
         const propertyKey = metadataKey.split(':JsonAlias:')[1];
         classProperties.add(propertyKey);
-        const jsonAlias: JsonAliasOptions = Reflect.getMetadata(metadataKey, target);
+        const jsonAlias: JsonAliasOptions = cachedReflectGetMetadataKeyForTarget(metadataKey, target);
         if (jsonAlias.values != null) {
           for (const alias of jsonAlias.values) {
             classProperties.add(alias);
@@ -451,7 +448,7 @@ export const internVirtualPropertyToClassPropertiesMapping =
           }
 
           const jsonVirtualProperty: JsonPropertyOptions | JsonGetterOptions | JsonSetterOptions =
-            Reflect.getMetadata(metadataKey, target);
+            cachedReflectGetMetadataKeyForTarget(metadataKey, target);
 
           if (jsonVirtualProperty && jsonVirtualProperty.value === key && jsonVirtualProperty._descriptor != null &&
             typeof jsonVirtualProperty._descriptor.value === 'function') {
@@ -1019,4 +1016,23 @@ const cachedReflectGetMetadataKeys = (target: Record<string, any>): any[] => {
     return reflectGetMetadataKeysCache.get(target);
   }
   return reflectGetMetadataKeysCache.set(target, Reflect.getMetadataKeys(target)).get(target);
+};
+
+
+// Cache call of Reflect.getMetadataKeys
+const reflectGetMetadataKeyForTargetCache = new Map<Record<string, any>, Map<any, any>>();
+
+/**
+ * @internal
+ */
+const cachedReflectGetMetadataKeyForTarget = (metadataKey: any, target: Record<string, any>): any => {
+  if (reflectGetMetadataKeyForTargetCache.has(target)) {
+    if (reflectGetMetadataKeyForTargetCache.get(target).has(metadataKey)) {
+      return reflectGetMetadataKeyForTargetCache.get(target).get(metadataKey);
+    }
+  } else {
+    reflectGetMetadataKeyForTargetCache.set(target, new Map());
+  }
+  return reflectGetMetadataKeyForTargetCache.get(target).set(metadataKey, Reflect.getMetadata(metadataKey, target))
+    .get(metadataKey);
 };
