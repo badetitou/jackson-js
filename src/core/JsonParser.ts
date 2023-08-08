@@ -258,7 +258,9 @@ export class JsonParser<T> {
       _internalDecorators: new Map(),
       ...context
     };
-    context = cloneDeep(context);
+
+    // BVER: Seems to have no impact so commented for now
+    // context = cloneDeep(context);
 
     if (value != null && context._internalDecorators != null &&
       context._internalDecorators.size > 0) {
