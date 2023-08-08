@@ -277,70 +277,60 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
   for (const metadataKey of metadataKeys) {
     if (metadataKey.startsWith('jackson:')) {
       const isJsonVirtualProperty = metadataKey.includes(':JsonVirtualProperty:');
-      const isJsonAlias = metadataKey.includes(':JsonAlias:');
-      if ( isJsonVirtualProperty ||
-        (isJsonAlias && options.withJsonAliases)) {
-        let metadataKeyFoundInContext = false;
-        const suffix = metadataKey
-          .split(/:JsonVirtualProperty:|:JsonAlias:/)[1];
-          // .split((metadataKey.includes(':JsonVirtualProperty:')) ? ':JsonVirtualProperty:' : ':JsonAlias:')[1];
-        for (const contextGroup of contextGroupsWithDefault) {
-          const metadataKeyWithContext = makeMetadataKeyWithContext(
-            (isJsonVirtualProperty) ? 'JsonVirtualProperty' : 'JsonAlias', {
-              contextGroup,
-              suffix
-            });
-          if (metadataKeyWithContext === metadataKey) {
-            metadataKeyFoundInContext = true;
-            break;
-          }
 
-        }
+      if (isJsonVirtualProperty) {
+        // Check if I should continue
+        const metadataKeyFoundInContext =
+          isMetadataKeyFoundInContext(metadataKey, 'JsonVirtualProperty', ':JsonVirtualProperty:', contextGroupsWithDefault);
         if (!metadataKeyFoundInContext) {
           continue;
         }
-        if (isJsonVirtualProperty) {
-          const jsonVirtualProperty: JsonPropertyOptions | JsonGetterOptions | JsonSetterOptions =
-            cachedReflectGetMetadataKeyForTarget(metadataKey, target);
+        // Normal behavior
+        const jsonVirtualProperty: JsonPropertyOptions | JsonGetterOptions | JsonSetterOptions =
+          cachedReflectGetMetadataKeyForTarget(metadataKey, target);
 
-          if (jsonVirtualProperty && jsonVirtualProperty._descriptor != null
-              && typeof jsonVirtualProperty._descriptor.value === 'function') {
-            if (jsonVirtualProperty._propertyKey.startsWith('get')) {
-              if (options.withGetterVirtualProperties) {
-                classProperties.add(jsonVirtualProperty.value);
-              }
-              if (!options.withGettersAsProperty) {
-                continue;
-              } else if (!options.withGetterVirtualProperties) {
-                keysToBeDeleted.add(jsonVirtualProperty.value);
-              }
+        if (jsonVirtualProperty && jsonVirtualProperty._descriptor != null
+            && typeof jsonVirtualProperty._descriptor.value === 'function') {
+          if (jsonVirtualProperty._propertyKey.startsWith('get')) {
+            if (options.withGetterVirtualProperties) {
+              classProperties.add(jsonVirtualProperty.value);
             }
-            if (jsonVirtualProperty._propertyKey.startsWith('set')) {
-              if (options.withSetterVirtualProperties) {
-                classProperties.add(jsonVirtualProperty.value);
-              }
-              if (!options.withSettersAsProperty) {
-                continue;
-              } else if (!options.withSetterVirtualProperties) {
-                keysToBeDeleted.add(jsonVirtualProperty.value);
-              }
+            if (!options.withGettersAsProperty) {
+              continue;
+            } else if (!options.withGetterVirtualProperties) {
+              keysToBeDeleted.add(jsonVirtualProperty.value);
             }
           }
-          classProperties.add(jsonVirtualProperty._propertyKey);
-          if (options.withJsonVirtualPropertyValues && jsonVirtualProperty.value != null) {
-            classProperties.add(jsonVirtualProperty.value);
-          }
-        } else if (isJsonAlias && options.withJsonAliases) {
-          const propertyKey = metadataKey.split(':JsonAlias:')[1];
-          classProperties.add(propertyKey);
-          const jsonAlias: JsonAliasOptions = cachedReflectGetMetadataKeyForTarget(metadataKey, target);
-          if (jsonAlias.values != null) {
-            for (const alias of jsonAlias.values) {
-              classProperties.add(alias);
+          if (jsonVirtualProperty._propertyKey.startsWith('set')) {
+            if (options.withSetterVirtualProperties) {
+              classProperties.add(jsonVirtualProperty.value);
+            }
+            if (!options.withSettersAsProperty) {
+              continue;
+            } else if (!options.withSetterVirtualProperties) {
+              keysToBeDeleted.add(jsonVirtualProperty.value);
             }
           }
         }
+        classProperties.add(jsonVirtualProperty._propertyKey);
+        if (options.withJsonVirtualPropertyValues && jsonVirtualProperty.value != null) {
+          classProperties.add(jsonVirtualProperty.value);
+        }
+      } else if (metadataKey.includes(':JsonAlias:') && options.withJsonAliases) {
+        const metadataKeyFoundInContext = isMetadataKeyFoundInContext(metadataKey, 'JsonAlias', ':JsonAlias:', contextGroupsWithDefault);
+        if (!metadataKeyFoundInContext) {
+          continue;
+        }
+        const suffix = metadataKey.split(':JsonAlias:')[1];
+        classProperties.add(suffix);
+        const jsonAlias: JsonAliasOptions = cachedReflectGetMetadataKeyForTarget(metadataKey, target);
+        if (jsonAlias.values != null) {
+          for (const alias of jsonAlias.values) {
+            classProperties.add(alias);
+          }
+        }
       }
+
     }
   }
 
@@ -363,7 +353,21 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
     alreadyMappedClassProperties.set(target, new Map<string, string[]>());
   }
   return alreadyMappedClassProperties.get(target).set(obj, [...classProperties]) .get(obj);
+};
 
+const isMetadataKeyFoundInContext = (metadataKey: any, property: string, propertyKey: string, contextGroupsWithDefault) => {
+  const suffix = metadataKey.split(propertyKey)[1];
+  for (const contextGroup of contextGroupsWithDefault) {
+    const metadataKeyWithContext = makeMetadataKeyWithContext(
+      property, {
+        contextGroup,
+        suffix
+      });
+    if (metadataKeyWithContext === metadataKey) {
+      return true;
+    }
+  }
+  return false;
 };
 
 /**
