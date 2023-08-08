@@ -239,8 +239,9 @@ const alreadyMappedClassProperties: Map<Record<string, any>, Map<any, string[]>>
 export const getClassProperties = (target: Record<string, any>, obj: any = null, context: JsonStringifierParserCommonContext<any>,
                                    options: GetClassPropertiesOptions = {}): string[] => {
 
-  if (alreadyMappedClassProperties.has(target) && alreadyMappedClassProperties.get(target).has(obj)) {
-    return alreadyMappedClassProperties.get(target).get(obj);
+  const cachedProperties = alreadyMappedClassProperties.get(target)?.get(obj);
+  if (cachedProperties) {
+    return cachedProperties;
   }
 
   options = {
@@ -254,7 +255,7 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
   };
 
   const contextGroupsWithDefault = [
-    ...(context.withContextGroups ? context.withContextGroups : []),
+    ...(context.withContextGroups  || []),
     DefaultContextGroup
   ];
 
@@ -278,11 +279,9 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
       if (metadataKey.includes(':JsonVirtualProperty:') ||
         (metadataKey.includes(':JsonAlias:') && options.withJsonAliases)) {
         let metadataKeyFoundInContext = false;
+        const suffix = metadataKey
+          .split((metadataKey.includes(':JsonVirtualProperty:')) ? ':JsonVirtualProperty:' : ':JsonAlias:')[1];
         for (const contextGroup of contextGroupsWithDefault) {
-
-          const suffix = metadataKey
-            .split((metadataKey.includes(':JsonVirtualProperty:')) ? ':JsonVirtualProperty:' : ':JsonAlias:')[1];
-
           const metadataKeyWithContext = makeMetadataKeyWithContext(
             (metadataKey.includes(':JsonVirtualProperty:')) ? 'JsonVirtualProperty' : 'JsonAlias', {
               contextGroup,
@@ -357,7 +356,7 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
     parent = Object.getPrototypeOf(parent);
   }
 
-  if (alreadyMappedClassProperties.get(target) === undefined) {
+  if (!alreadyMappedClassProperties.has(target)) {
     alreadyMappedClassProperties.set(target, new Map<string, string[]>());
   }
   alreadyMappedClassProperties.get(target).set(obj, [...classProperties]);
