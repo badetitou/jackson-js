@@ -1152,8 +1152,9 @@ export class JsonParser<T> {
           continue;
         }
 
-        const realKey = metadataKey.split(
-          metadataKey.includes(':JsonVirtualProperty:') ? ':JsonVirtualProperty:' : ':JsonAlias:')[1];
+        const realKey = metadataKey
+          .split(/:JsonVirtualProperty:|:JsonAlias:/)[1];
+          // .split(metadataKey.includes(':JsonVirtualProperty:') ? ':JsonVirtualProperty:' : ':JsonAlias:')[1];
 
         const isIgnored =
           jsonVirtualProperty && 'access' in jsonVirtualProperty && jsonVirtualProperty.access === JsonPropertyAccess.READ_ONLY;

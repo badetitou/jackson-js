@@ -272,18 +272,21 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
 
   const keysToBeDeleted = new Set<string>();
   const metadataKeys = cachedReflectGetMetadataKeys(target);
-  let classProperties: Set<string> = new Set(objKeys);
+  const classProperties: Set<string> = new Set(objKeys);
 
   for (const metadataKey of metadataKeys) {
     if (metadataKey.startsWith('jackson:')) {
-      if (metadataKey.includes(':JsonVirtualProperty:') ||
-        (metadataKey.includes(':JsonAlias:') && options.withJsonAliases)) {
+      const isJsonVirtualProperty = metadataKey.includes(':JsonVirtualProperty:');
+      const isJsonAlias = metadataKey.includes(':JsonAlias:');
+      if ( isJsonVirtualProperty ||
+        (isJsonAlias && options.withJsonAliases)) {
         let metadataKeyFoundInContext = false;
         const suffix = metadataKey
-          .split((metadataKey.includes(':JsonVirtualProperty:')) ? ':JsonVirtualProperty:' : ':JsonAlias:')[1];
+          .split(/:JsonVirtualProperty:|:JsonAlias:/)[1];
+          // .split((metadataKey.includes(':JsonVirtualProperty:')) ? ':JsonVirtualProperty:' : ':JsonAlias:')[1];
         for (const contextGroup of contextGroupsWithDefault) {
           const metadataKeyWithContext = makeMetadataKeyWithContext(
-            (metadataKey.includes(':JsonVirtualProperty:')) ? 'JsonVirtualProperty' : 'JsonAlias', {
+            (isJsonVirtualProperty) ? 'JsonVirtualProperty' : 'JsonAlias', {
               contextGroup,
               suffix
             });
@@ -296,52 +299,50 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
         if (!metadataKeyFoundInContext) {
           continue;
         }
-      }
+        if (isJsonVirtualProperty) {
+          const jsonVirtualProperty: JsonPropertyOptions | JsonGetterOptions | JsonSetterOptions =
+            cachedReflectGetMetadataKeyForTarget(metadataKey, target);
 
-      if (metadataKey.includes(':JsonVirtualProperty:')) {
-        const jsonVirtualProperty: JsonPropertyOptions | JsonGetterOptions | JsonSetterOptions =
-          cachedReflectGetMetadataKeyForTarget(metadataKey, target);
-
-        if (jsonVirtualProperty && jsonVirtualProperty._descriptor != null && typeof jsonVirtualProperty._descriptor.value === 'function') {
-          if (jsonVirtualProperty._propertyKey.startsWith('get')) {
-            if (options.withGetterVirtualProperties) {
-              classProperties.add(jsonVirtualProperty.value);
+          if (jsonVirtualProperty && jsonVirtualProperty._descriptor != null
+              && typeof jsonVirtualProperty._descriptor.value === 'function') {
+            if (jsonVirtualProperty._propertyKey.startsWith('get')) {
+              if (options.withGetterVirtualProperties) {
+                classProperties.add(jsonVirtualProperty.value);
+              }
+              if (!options.withGettersAsProperty) {
+                continue;
+              } else if (!options.withGetterVirtualProperties) {
+                keysToBeDeleted.add(jsonVirtualProperty.value);
+              }
             }
-            if (!options.withGettersAsProperty) {
-              continue;
-            } else if (!options.withGetterVirtualProperties) {
-              keysToBeDeleted.add(jsonVirtualProperty.value);
+            if (jsonVirtualProperty._propertyKey.startsWith('set')) {
+              if (options.withSetterVirtualProperties) {
+                classProperties.add(jsonVirtualProperty.value);
+              }
+              if (!options.withSettersAsProperty) {
+                continue;
+              } else if (!options.withSetterVirtualProperties) {
+                keysToBeDeleted.add(jsonVirtualProperty.value);
+              }
             }
           }
-          if (jsonVirtualProperty._propertyKey.startsWith('set')) {
-            if (options.withSetterVirtualProperties) {
-              classProperties.add(jsonVirtualProperty.value);
-            }
-            if (!options.withSettersAsProperty) {
-              continue;
-            } else if (!options.withSetterVirtualProperties) {
-              keysToBeDeleted.add(jsonVirtualProperty.value);
-            }
+          classProperties.add(jsonVirtualProperty._propertyKey);
+          if (options.withJsonVirtualPropertyValues && jsonVirtualProperty.value != null) {
+            classProperties.add(jsonVirtualProperty.value);
           }
-        }
-        classProperties.add(jsonVirtualProperty._propertyKey);
-        if (options.withJsonVirtualPropertyValues && jsonVirtualProperty.value != null) {
-          classProperties.add(jsonVirtualProperty.value);
-        }
-      } else if (metadataKey.includes(':JsonAlias:') && options.withJsonAliases) {
-        const propertyKey = metadataKey.split(':JsonAlias:')[1];
-        classProperties.add(propertyKey);
-        const jsonAlias: JsonAliasOptions = cachedReflectGetMetadataKeyForTarget(metadataKey, target);
-        if (jsonAlias.values != null) {
-          for (const alias of jsonAlias.values) {
-            classProperties.add(alias);
+        } else if (isJsonAlias && options.withJsonAliases) {
+          const propertyKey = metadataKey.split(':JsonAlias:')[1];
+          classProperties.add(propertyKey);
+          const jsonAlias: JsonAliasOptions = cachedReflectGetMetadataKeyForTarget(metadataKey, target);
+          if (jsonAlias.values != null) {
+            for (const alias of jsonAlias.values) {
+              classProperties.add(alias);
+            }
           }
         }
       }
     }
   }
-
-  classProperties = new Set([...classProperties].filter((key) => !keysToBeDeleted.has(key)));
 
   let parent = target;
   while (parent.name && parent !== Object) {
@@ -356,12 +357,13 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
     parent = Object.getPrototypeOf(parent);
   }
 
+  keysToBeDeleted.forEach((key) => classProperties.delete(key));
+
   if (!alreadyMappedClassProperties.has(target)) {
     alreadyMappedClassProperties.set(target, new Map<string, string[]>());
   }
-  alreadyMappedClassProperties.get(target).set(obj, [...classProperties]);
+  return alreadyMappedClassProperties.get(target).set(obj, [...classProperties]) .get(obj);
 
-  return alreadyMappedClassProperties.get(target).get(obj);
 };
 
 /**
