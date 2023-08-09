@@ -1169,31 +1169,31 @@ export class JsonParser<T> {
         const realKey = metadataKey.split(/:JsonVirtualProperty:|:JsonAlias:/)[1];
 
         const isIgnored =
-          jsonVirtualProperty && 'access' in jsonVirtualProperty && jsonVirtualProperty.access === JsonPropertyAccess.READ_ONLY;
-
-        if (jsonVirtualProperty && !isIgnored) {
-          if (Object.hasOwnProperty.call(replacement, jsonVirtualProperty.value)) {
-            replacement[realKey] = replacement[jsonVirtualProperty.value];
-            if (realKey !== jsonVirtualProperty.value) {
-              delete replacement[jsonVirtualProperty.value];
-            }
-          } else if ('required' in jsonVirtualProperty && jsonVirtualProperty.required) {
-            // eslint-disable-next-line max-len
-            throw new JacksonError(`Required property "${jsonVirtualProperty.value}" not found at [Source '${JSON.stringify(replacement)}']`);
-          }
-        }
-        if (jsonVirtualProperty && (jsonVirtualProperty as JsonAliasOptions).values && !isIgnored) {
-          for (const alias of (jsonVirtualProperty as JsonAliasOptions).values) {
-            if (Object.hasOwnProperty.call(replacement, alias)) {
-              replacement[realKey] = replacement[alias];
-              if (realKey !== alias) {
-                delete replacement[alias];
+          jsonVirtualProperty && (jsonVirtualProperty as {access}).access === JsonPropertyAccess.READ_ONLY;
+        if (!isIgnored) {
+          if (jsonVirtualProperty) {
+            if (Object.hasOwnProperty.call(replacement, jsonVirtualProperty.value)) {
+              replacement[realKey] = replacement[jsonVirtualProperty.value];
+              if (realKey !== jsonVirtualProperty.value) {
+                delete replacement[jsonVirtualProperty.value];
               }
-              break;
+            } else if ((jsonVirtualProperty as {required}).required) {
+              // eslint-disable-next-line max-len
+              throw new JacksonError(`Required property "${jsonVirtualProperty.value}" not found at [Source '${JSON.stringify(replacement)}']`);
+            }
+            if ((jsonVirtualProperty as JsonAliasOptions).values) {
+              for (const alias of (jsonVirtualProperty as JsonAliasOptions).values) {
+                if (Object.hasOwnProperty.call(replacement, alias)) {
+                  replacement[realKey] = replacement[alias];
+                  if (realKey !== alias) {
+                    delete replacement[alias];
+                  }
+                  break;
+                }
+              }
             }
           }
-        }
-        if (isIgnored) {
+        } else {
           delete replacement[realKey];
         }
       }
