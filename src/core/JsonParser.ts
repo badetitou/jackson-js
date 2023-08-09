@@ -62,7 +62,7 @@ import {
   JsonSetterNulls
 } from '../decorators';
 import {JacksonError} from './JacksonError';
-import * as cloneDeep from 'lodash.clonedeep';
+// import * as cloneDeep from 'lodash.clonedeep';
 import * as clone from 'lodash.clone';
 import {DefaultDeserializationFeatureValues} from '../databind';
 
@@ -226,7 +226,8 @@ export class JsonParser<T> {
       newContext.mainCreator : [(value != null) ? value.constructor : Object];
     newContext._propertyParentCreator = newContext.mainCreator[0];
     newContext._internalDecorators = new Map();
-    newContext = cloneDeep(newContext);
+    // BVER was cloneDeep
+    newContext = clone(newContext);
 
     const postProcessedObj = this.deepTransform('', value, undefined, newContext, globalContext);
     if (globalContext.globalUnresolvedObjectIdentities.size > 0 &&
@@ -1257,7 +1258,8 @@ export class JsonParser<T> {
     }
     this.propagateDecorators(jsonClass, obj, key, context, methodName, argumentIndex);
 
-    const newContext = cloneDeep(context);
+    // BVER: was cloneDeep
+    const newContext = clone(context);
 
     if (jsonClass && jsonClass.type) {
       newContext.mainCreator = jsonClass.type();
@@ -1742,7 +1744,8 @@ export class JsonParser<T> {
     const currentCreator = currentCreators[0];
 
     let newIterable: any;
-    const newContext = cloneDeep(context);
+    // BVER was cloneDeep
+    const newContext = clone(context);
 
     if (currentCreators.length > 1 && currentCreators[1] instanceof Array) {
       newContext.mainCreator = currentCreators[1] as [ClassType<any>];
@@ -1814,7 +1817,8 @@ export class JsonParser<T> {
 
     let map: Map<any, any> | Record<any, any>;
 
-    const newContext = cloneDeep(context);
+    // BVER was cloneDeep
+    const newContext = clone(context);
     if (currentCreators.length > 1 && currentCreators[1] instanceof Array) {
       newContext.mainCreator = currentCreators[1] as [ClassType<any>];
     } else {
@@ -1833,8 +1837,10 @@ export class JsonParser<T> {
     for (let mapKey of mapKeys) {
       let mapValue = obj[mapKey];
 
-      const keyNewContext = cloneDeep(newContext);
-      const valueNewContext = cloneDeep(newContext);
+      // BVER was cloneDeep
+      const keyNewContext = clone(newContext);
+      // BVER was cloneDeep
+      const valueNewContext = clone(newContext);
 
       if (mapCurrentCreators[0] instanceof Array) {
         keyNewContext.mainCreator = mapCurrentCreators[0] as [ClassType<any>];
