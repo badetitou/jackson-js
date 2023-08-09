@@ -813,18 +813,18 @@ export class JsonParser<T> {
     }
 
     if (jsonCreatorMode !== JsonCreatorMode.DELEGATING) {
-      const keysToBeExcluded = [...new Set([
+      const keysToBeExcluded = new Set([
         ...propNames,
         ...propNamesAliasToBeExcluded,
         ...jsonAppendAttributesToBeExcluded,
         ...classPropertiesToBeExcluded
-      ])];
+      ]);
 
       const classKeys = getClassProperties(currentMainCreator, obj, context, {
         withSettersAsProperty: true
       });
 
-      const remainingKeys = classKeys.filter(k => Object.hasOwnProperty.call(obj, k) && !keysToBeExcluded.includes(k));
+      const remainingKeys = classKeys.filter(k => Object.hasOwnProperty.call(obj, k) && !keysToBeExcluded.has(k));
       let unknownKeys = [];
 
       const hasJsonAnySetter =
