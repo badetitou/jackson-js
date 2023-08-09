@@ -503,17 +503,21 @@ export class JsonParser<T> {
     const currentMainCreator = context.mainCreator[0];
 
     // Decorators list that can be propagated
+    const metadataKeysParamForDeepestClass = [
+      'JsonIgnorePropertiesParam:' + argumentIndex,
+      'JsonTypeInfoParam:' + argumentIndex,
+      'JsonSubTypesParam:' + argumentIndex,
+      'JsonTypeIdResolverParam:' + argumentIndex,
+      'JsonIdentityInfoParam:' + argumentIndex
+    ];
+
+    // Decorators list that can be propagated
     const metadataKeysForDeepestClass = [
       'JsonIgnoreProperties',
-      'JsonIgnorePropertiesParam:' + argumentIndex,
       'JsonTypeInfo',
-      'JsonTypeInfoParam:' + argumentIndex,
       'JsonSubTypes',
-      'JsonSubTypesParam:' + argumentIndex,
       'JsonTypeIdResolver',
-      'JsonTypeIdResolverParam:' + argumentIndex,
       'JsonIdentityInfo',
-      'JsonIdentityInfoParam:' + argumentIndex
     ];
 
     const metadataKeysForFirstClass = [
@@ -541,15 +545,25 @@ export class JsonParser<T> {
     }
 
     for (const metadataKey of metadataKeysForDeepestClass) {
-
-      const indexOfParam = metadataKey.indexOf('Param:');
-
-      const jsonDecoratorOptions: JsonDecoratorOptions = indexOfParam !== -1 ?
-        this.cachedGetMetadata(metadataKey, currentMainCreator, methodName, context) :
-        this.cachedGetMetadata(metadataKey, currentMainCreator, key, context);
+      const jsonDecoratorOptions: JsonDecoratorOptions = this.cachedGetMetadata(metadataKey, currentMainCreator, key, context);
 
       if (jsonDecoratorOptions) {
-        if (metadataKey.includes('Param:') && deepestClass != null && methodName != null && argumentIndex != null) {
+        const metadataKeysWithContext =
+          makeMetadataKeysWithContext(metadataKey, {contextGroups: jsonDecoratorOptions.contextGroups});
+        for (const metadataKeyWithContext of metadataKeysWithContext) {
+          decoratorsToBeAppliedForDeepestClass[metadataKeyWithContext] = jsonDecoratorOptions;
+        }
+        decoratorsNameFoundForDeepestClass.push(metadataKey);
+      }
+    }
+
+    for (const metadataKey of metadataKeysParamForDeepestClass) {
+      const indexOfParam = metadataKey.indexOf('Param:');
+
+      const jsonDecoratorOptions: JsonDecoratorOptions = this.cachedGetMetadata(metadataKey, currentMainCreator, methodName, context);
+
+      if (jsonDecoratorOptions) {
+        if (deepestClass != null && methodName != null && argumentIndex != null) {
           const jsonClassParam: JsonClassTypeOptions =
             this.cachedGetMetadata('JsonClassTypeParam:' + argumentIndex, currentMainCreator, methodName, context) as JsonClassTypeOptions;
 
