@@ -320,7 +320,7 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
         if (!metadataKeyFoundInContext) {
           continue;
         }
-        const suffix = metadataKey.split(':JsonAlias:')[1];
+        const suffix = metadataKey.split(':').pop();
         classProperties.add(suffix);
         const jsonAlias: JsonAliasOptions = cachedReflectGetMetadataKeyForTarget(metadataKey, target);
         if (jsonAlias.values != null) {

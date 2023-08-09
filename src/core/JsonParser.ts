@@ -1166,7 +1166,8 @@ export class JsonParser<T> {
           continue;
         }
 
-        const realKey = metadataKey.split(/:JsonVirtualProperty:|:JsonAlias:/)[1];
+        // const realKey = metadataKey.split(/:JsonVirtualProperty:|:JsonAlias:/)[1];
+        const realKey = metadataKey.split(':').pop();
 
         const isIgnored =
           jsonVirtualProperty && (jsonVirtualProperty as {access}).access === JsonPropertyAccess.READ_ONLY;
@@ -1662,7 +1663,7 @@ export class JsonParser<T> {
     const metadataKeys: string[] = getMetadataKeys(currentMainCreator, context);
     for (const metadataKey of metadataKeys) {
       if (metadataKey.includes(':JsonUnwrapped:')) {
-        const realKey = metadataKey.split(':JsonUnwrapped:')[1];
+        const realKey = metadataKey.split(':').pop();
 
         const jsonUnwrapped: JsonUnwrappedOptions =
           this.cachedGetMetadata(metadataKey, currentMainCreator, null, context);
