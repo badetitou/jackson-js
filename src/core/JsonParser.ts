@@ -12,7 +12,6 @@ import {
   getMetadata,
   getMetadataKeys,
   hasBigInt,
-  hasMetadata,
   isClassIterable,
   isConstructorPrimitiveType,
   isIterableNoMapNoString,
@@ -665,6 +664,15 @@ export class JsonParser<T> {
   }
 
   /**
+   * This method implements a cache that can be used instead of calling directly the getMetadata of util.ts
+   */
+  private cachedHasMetadata(metadataKey: string, target: ClassType<any>, propertyKey: string | symbol = null,
+                            context: JsonParserTransformerContext) {
+    return this.cachedGetMetadata(metadataKey, target, propertyKey, context) != null;
+  }
+
+
+  /**
    *
    * @param key
    * @param value
@@ -754,7 +762,7 @@ export class JsonParser<T> {
     const jsonCreatorMetadataKey = 'JsonCreator:' + ((withCreatorName != null) ? withCreatorName : defaultCreatorName);
 
     const hasJsonCreator =
-      hasMetadata(jsonCreatorMetadataKey, currentMainCreator, null, context);
+      this.cachedHasMetadata(jsonCreatorMetadataKey, currentMainCreator, null, context);
 
     const jsonCreator: JsonCreatorOptions | ClassType<any> = (hasJsonCreator) ?
       this.cachedGetMetadata(jsonCreatorMetadataKey, currentMainCreator, null, context) :
@@ -834,7 +842,7 @@ export class JsonParser<T> {
       let unknownKeys = [];
 
       const hasJsonAnySetter =
-        hasMetadata('JsonAnySetter', currentMainCreator, null, context);
+        this.cachedHasMetadata('JsonAnySetter', currentMainCreator, null, context);
       // add remaining properties and ignore the ones that are not part of "instance"
       for (const key of remainingKeys) {
         const jsonVirtualProperty: JsonPropertyOptions | JsonSetterOptions =
@@ -1063,7 +1071,7 @@ export class JsonParser<T> {
       const key = propNames[propIndex];
 
       const hasJsonIgnore =
-        hasMetadata('JsonIgnoreParam:' + propIndex, currentMainCreator, methodName, context);
+        this.cachedHasMetadata('JsonIgnoreParam:' + propIndex, currentMainCreator, methodName, context);
       if (hasJsonIgnore) {
         props.push([key, context.features.deserialization.MAP_UNDEFINED_TO_NULL ? null : undefined]);
       }
@@ -1201,7 +1209,7 @@ export class JsonParser<T> {
    */
   private parseJsonRawValue(context: JsonParserTransformerContext, replacement: any, key: string): void {
     const jsonRawValue =
-      hasMetadata('JsonRawValue', context.mainCreator[0], key, context);
+      this.cachedHasMetadata('JsonRawValue', context.mainCreator[0], key, context);
     if (jsonRawValue) {
       replacement[key] = JSON.stringify(replacement[key]);
     }
@@ -1435,7 +1443,7 @@ export class JsonParser<T> {
   private parseHasJsonIgnore(context: JsonParserTransformerContext, key: string): boolean {
     const currentMainCreator = context.mainCreator[0];
     const hasJsonIgnore =
-      hasMetadata('JsonIgnore', currentMainCreator, key, context);
+      this.cachedHasMetadata('JsonIgnore', currentMainCreator, key, context);
 
     if (!hasJsonIgnore) {
       const jsonIgnoreProperties: JsonIgnorePropertiesOptions =
@@ -1462,7 +1470,7 @@ export class JsonParser<T> {
    * @param context
    */
   private parseJsonIgnoreType(context: JsonParserTransformerContext): boolean {
-    return hasMetadata('JsonIgnoreType', context.mainCreator[0], null, context);
+    return this.cachedHasMetadata('JsonIgnoreType', context.mainCreator[0], null, context);
   }
 
   /**
