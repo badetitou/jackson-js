@@ -280,7 +280,7 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
       if (isJsonVirtualProperty) {
         // Check if I should continue
         const metadataKeyFoundInContext =
-          isMetadataKeyFoundInContext(metadataKey, 'JsonVirtualProperty', ':JsonVirtualProperty:', contextGroupsWithDefault);
+          isMetadataKeyFoundInContext(metadataKey, 'JsonVirtualProperty', contextGroupsWithDefault);
         if (!metadataKeyFoundInContext) {
           continue;
         }
@@ -316,7 +316,7 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
           classProperties.add(jsonVirtualProperty.value);
         }
       } else if (metadataKey.includes(':JsonAlias:') && options.withJsonAliases) {
-        const metadataKeyFoundInContext = isMetadataKeyFoundInContext(metadataKey, 'JsonAlias', ':JsonAlias:', contextGroupsWithDefault);
+        const metadataKeyFoundInContext = isMetadataKeyFoundInContext(metadataKey, 'JsonAlias', contextGroupsWithDefault);
         if (!metadataKeyFoundInContext) {
           continue;
         }
@@ -354,8 +354,9 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
   return alreadyMappedClassProperties.get(target).set(obj, [...classProperties]) .get(obj);
 };
 
-const isMetadataKeyFoundInContext = (metadataKey: any, property: string, propertyKey: string, contextGroupsWithDefault) => {
-  const suffix = metadataKey.split(propertyKey)[1];
+const isMetadataKeyFoundInContext = (metadataKey: any, property: string, contextGroupsWithDefault) => {
+
+  const suffix = metadataKey.split(':').pop();
   for (const contextGroup of contextGroupsWithDefault) {
     const metadataKeyWithContext = makeMetadataKeyWithContext(
       property, {
