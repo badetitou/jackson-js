@@ -231,7 +231,7 @@ export interface GetClassPropertiesOptions {
 /**
  * @internal
  */
-const alreadyMappedClassProperties: Map<Record<string, any>, Map<any, string[]>> = new Map();
+const alreadyMappedClassProperties: WeakMap<Record<string, any>, Array<any>> = new WeakMap();
 
 /**
  * @internal
@@ -239,8 +239,9 @@ const alreadyMappedClassProperties: Map<Record<string, any>, Map<any, string[]>>
 export const getClassProperties = (target: Record<string, any>, obj: any = null, context: JsonStringifierParserCommonContext<any>,
                                    options: GetClassPropertiesOptions = {}): string[] => {
 
-  if (alreadyMappedClassProperties.has(target) && alreadyMappedClassProperties.get(target).has(obj))  {
-    return alreadyMappedClassProperties.get(target).get(obj);
+  const objDefinition = obj ? Object.keys(obj).join(',') : 'null';
+  if (alreadyMappedClassProperties.has(target) && alreadyMappedClassProperties.get(target)[objDefinition] !== undefined)  {
+    return alreadyMappedClassProperties.get(target)[objDefinition];
   }
 
   options = {
@@ -349,9 +350,9 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
   keysToBeDeleted.forEach((key) => classProperties.delete(key));
 
   if (!alreadyMappedClassProperties.has(target)) {
-    alreadyMappedClassProperties.set(target, new Map<string, string[]>());
+    alreadyMappedClassProperties.set(target, []);
   }
-  return alreadyMappedClassProperties.get(target).set(obj, [...classProperties]) .get(obj);
+  return alreadyMappedClassProperties.get(target)[objDefinition] = [...classProperties];
 };
 
 const isMetadataKeyFoundInContext = (metadataKey: any, property: string, contextGroupsWithDefault) => {
@@ -414,7 +415,7 @@ export const virtualPropertiesToClassPropertiesMapping =
 /**
  * @internal
  */
-const alreadyMappedType: Map<Record<string, any>, Map<string, Set<string>>> = new Map();
+const alreadyMappedType: WeakMap<Record<string, any>, Map<string, Set<string>>> = new WeakMap();
 
 /**
  * @internal
