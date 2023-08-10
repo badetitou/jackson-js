@@ -1913,7 +1913,6 @@ test('@JsonTypeInfo with @JsonIdentityInfo and recursive subclasses with polymor
 
   const objectMapper = new ObjectMapper();
   const jsonData = objectMapper.stringify<SousClass>(sousClass);
-  console.log(jsonData);
   t.deepEqual(JSON.parse(jsonData), JSON.parse('{"objA":{"sup":2,"@id":3,"@type":"MyObjectA"},"@id":2,"@type":"SousClass"}'));
 
   const parsedSousClass = objectMapper.parse<SousClass>(jsonData, {mainCreator: () => [SousClass]});
