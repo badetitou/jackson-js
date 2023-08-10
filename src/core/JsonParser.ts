@@ -813,21 +813,22 @@ export class JsonParser<T> {
 
     this.parseJsonIdentityInfo(instance, obj, context, globalContext);
 
-    const jsonAppendAttributesToBeExcluded = [];
-    const jsonAppend: JsonAppendOptions =
-      this.cachedGetMetadata('JsonAppend', currentMainCreator, null, context);
-    if (jsonAppend && jsonAppend.attrs && jsonAppend.attrs.length > 0) {
-      for (const attr of jsonAppend.attrs) {
-        if (attr.value) {
-          jsonAppendAttributesToBeExcluded.push(attr.value);
-        }
-        if (attr.propName) {
-          jsonAppendAttributesToBeExcluded.push(attr.propName);
+    if (jsonCreatorMode !== JsonCreatorMode.DELEGATING) {
+
+      const jsonAppendAttributesToBeExcluded = [];
+      const jsonAppend: JsonAppendOptions =
+        this.cachedGetMetadata('JsonAppend', currentMainCreator, null, context);
+      if (jsonAppend && jsonAppend.attrs && jsonAppend.attrs.length > 0) {
+        for (const attr of jsonAppend.attrs) {
+          if (attr.value) {
+            jsonAppendAttributesToBeExcluded.push(attr.value);
+          }
+          if (attr.propName) {
+            jsonAppendAttributesToBeExcluded.push(attr.propName);
+          }
         }
       }
-    }
 
-    if (jsonCreatorMode !== JsonCreatorMode.DELEGATING) {
       const keysToBeExcluded = new Set();
       propNames.forEach((el) => keysToBeExcluded.add(el));
       propNamesAliasToBeExcluded.forEach((el) => keysToBeExcluded.add(el));
