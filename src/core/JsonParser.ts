@@ -820,12 +820,11 @@ export class JsonParser<T> {
     }
 
     if (jsonCreatorMode !== JsonCreatorMode.DELEGATING) {
-      const keysToBeExcluded = new Set([
-        ...propNames,
-        ...propNamesAliasToBeExcluded,
-        ...jsonAppendAttributesToBeExcluded,
-        ...classPropertiesToBeExcluded
-      ]);
+      const keysToBeExcluded = new Set();
+      propNames.forEach((el) => keysToBeExcluded.add(el));
+      propNamesAliasToBeExcluded.forEach((el) => keysToBeExcluded.add(el));
+      jsonAppendAttributesToBeExcluded.forEach((el) => keysToBeExcluded.add(el));
+      classPropertiesToBeExcluded.forEach((el) => keysToBeExcluded.add(el));
 
       const classKeys = getClassProperties(currentMainCreator, obj, context, {
         withSettersAsProperty: true
