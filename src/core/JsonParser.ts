@@ -95,6 +95,7 @@ export class JsonParser<T> {
    */
   propagateDecoratorsCache:
   Map<Record<string, any>, Map<string, Map<string|symbol, JsonDecoratorOptions>>> = new Map();
+  metadataKeysIncludingCache: Map<Record<string, any>, Map<string, any>> = new Map();
 
   /**
    *
@@ -1157,51 +1158,69 @@ export class JsonParser<T> {
   private parseJsonVirtualPropertyAndJsonAlias(replacement: any, context: JsonParserTransformerContext): void {
     const currentMainCreator = context.mainCreator[0];
     // convert JsonProperty to Class properties
-    const creatorMetadataKeys = getMetadataKeys(currentMainCreator, context);
-    for (const metadataKey of creatorMetadataKeys) {
-      if (metadataKey.includes(':JsonVirtualProperty:') || metadataKey.includes(':JsonAlias:')) {
+    const aliasMetadataKeys = this.cachedGetMetadataKeysIncluding(currentMainCreator, context, ':JsonAlias:');
+    const virtualMetadataKeys = this.cachedGetMetadataKeysIncluding(currentMainCreator, context, ':JsonVirtualProperty:');
+    for (const metadataKey of virtualMetadataKeys) {
+      this.applyJsonVirtualPropertyAndJsonAlias(replacement, metadataKey, currentMainCreator, context);
+    }
+    for (const metadataKey of aliasMetadataKeys) {
+      this.applyJsonVirtualPropertyAndJsonAlias(replacement, metadataKey, currentMainCreator, context);
+    }
+  }
 
-        const jsonVirtualProperty: JsonPropertyOptions | JsonSetterOptions =
-          this.cachedGetMetadata(metadataKey, currentMainCreator, null, context);
+  private applyJsonVirtualPropertyAndJsonAlias(replacement, metadataKey, currentMainCreator, context) {
+    const jsonVirtualProperty: JsonPropertyOptions | JsonSetterOptions =
+        this.cachedGetMetadata(metadataKey, currentMainCreator, null, context);
 
-        if (jsonVirtualProperty && jsonVirtualProperty._descriptor != null &&
-          typeof jsonVirtualProperty._descriptor.value === 'function' &&
-          jsonVirtualProperty._propertyKey.startsWith('get')) {
-          continue;
+    if (jsonVirtualProperty && jsonVirtualProperty._descriptor != null &&
+      typeof jsonVirtualProperty._descriptor.value === 'function' &&
+      jsonVirtualProperty._propertyKey.startsWith('get')) {
+      return;
+    }
+
+    const realKey = metadataKey.split(':').pop();
+
+    const isIgnored =
+      jsonVirtualProperty && (jsonVirtualProperty as {access}).access === JsonPropertyAccess.READ_ONLY;
+    if (!isIgnored) {
+      if (jsonVirtualProperty) {
+        if (Object.hasOwnProperty.call(replacement, jsonVirtualProperty.value)) {
+          replacement[realKey] = replacement[jsonVirtualProperty.value];
+          if (realKey !== jsonVirtualProperty.value) {
+            delete replacement[jsonVirtualProperty.value];
+          }
+        } else if ((jsonVirtualProperty as {required}).required) {
+          // eslint-disable-next-line max-len
+          throw new JacksonError(`Required property "${jsonVirtualProperty.value}" not found at [Source '${JSON.stringify(replacement)}']`);
         }
-
-        const realKey = metadataKey.split(':').pop();
-
-        const isIgnored =
-          jsonVirtualProperty && (jsonVirtualProperty as {access}).access === JsonPropertyAccess.READ_ONLY;
-        if (!isIgnored) {
-          if (jsonVirtualProperty) {
-            if (Object.hasOwnProperty.call(replacement, jsonVirtualProperty.value)) {
-              replacement[realKey] = replacement[jsonVirtualProperty.value];
-              if (realKey !== jsonVirtualProperty.value) {
-                delete replacement[jsonVirtualProperty.value];
+        if ((jsonVirtualProperty as JsonAliasOptions).values) {
+          for (const alias of (jsonVirtualProperty as JsonAliasOptions).values) {
+            if (Object.hasOwnProperty.call(replacement, alias)) {
+              replacement[realKey] = replacement[alias];
+              if (realKey !== alias) {
+                delete replacement[alias];
               }
-            } else if ((jsonVirtualProperty as {required}).required) {
-              // eslint-disable-next-line max-len
-              throw new JacksonError(`Required property "${jsonVirtualProperty.value}" not found at [Source '${JSON.stringify(replacement)}']`);
-            }
-            if ((jsonVirtualProperty as JsonAliasOptions).values) {
-              for (const alias of (jsonVirtualProperty as JsonAliasOptions).values) {
-                if (Object.hasOwnProperty.call(replacement, alias)) {
-                  replacement[realKey] = replacement[alias];
-                  if (realKey !== alias) {
-                    delete replacement[alias];
-                  }
-                  break;
-                }
-              }
+              break;
             }
           }
-        } else {
-          delete replacement[realKey];
         }
       }
+    } else {
+      delete replacement[realKey];
     }
+  }
+
+  private cachedGetMetadataKeysIncluding(currentMainCreator, context, including: string) {
+    let metadataKeysForCreatorMap = this.metadataKeysIncludingCache.get(currentMainCreator);
+    if (metadataKeysForCreatorMap === undefined) {
+      metadataKeysForCreatorMap = this.metadataKeysIncludingCache.set(currentMainCreator, new Map()).get(currentMainCreator);
+    }
+    if (metadataKeysForCreatorMap.has(including)) {
+      return metadataKeysForCreatorMap.get(including);
+    }
+    return metadataKeysForCreatorMap.set(including, getMetadataKeys(currentMainCreator, context).filter((key) => key.includes(including)))
+      .get(including);
+
   }
 
   /**
@@ -1664,41 +1683,39 @@ export class JsonParser<T> {
    */
   private parseJsonUnwrapped(replacement: any, context: JsonParserTransformerContext): void {
     const currentMainCreator = context.mainCreator[0];
-    const metadataKeys: string[] = getMetadataKeys(currentMainCreator, context);
+    const metadataKeys: string[] = this.cachedGetMetadataKeysIncluding(currentMainCreator, context, ':JsonUnwrapped:');
     for (const metadataKey of metadataKeys) {
-      if (metadataKey.includes(':JsonUnwrapped:')) {
-        const realKey = metadataKey.split(':').pop();
+      const realKey = metadataKey.split(':').pop();
 
-        const jsonUnwrapped: JsonUnwrappedOptions =
-          this.cachedGetMetadata(metadataKey, currentMainCreator, null, context);
-        if (jsonUnwrapped._descriptor != null &&
-          typeof jsonUnwrapped._descriptor.value === 'function' &&
-          !realKey.startsWith('set')) {
-          continue;
-        }
+      const jsonUnwrapped: JsonUnwrappedOptions =
+        this.cachedGetMetadata(metadataKey, currentMainCreator, null, context);
+      if (jsonUnwrapped._descriptor != null &&
+        typeof jsonUnwrapped._descriptor.value === 'function' &&
+        !realKey.startsWith('set')) {
+        continue;
+      }
 
-        const jsonClass: JsonClassTypeOptions =
-          this.cachedGetMetadata('JsonClassType', currentMainCreator, realKey, context) as JsonClassTypeOptions;
-        if (!jsonClass) {
-          // eslint-disable-next-line max-len
-          throw new JacksonError(`@JsonUnwrapped() requires use of @JsonClass() for deserialization at ${currentMainCreator.name}["${realKey}"])`);
-        }
+      const jsonClass: JsonClassTypeOptions =
+        this.cachedGetMetadata('JsonClassType', currentMainCreator, realKey, context) as JsonClassTypeOptions;
+      if (!jsonClass) {
+        // eslint-disable-next-line max-len
+        throw new JacksonError(`@JsonUnwrapped() requires use of @JsonClass() for deserialization at ${currentMainCreator.name}["${realKey}"])`);
+      }
 
-        const prefix = (jsonUnwrapped.prefix != null) ? jsonUnwrapped.prefix : '';
-        const suffix = (jsonUnwrapped.suffix != null) ? jsonUnwrapped.suffix : '';
+      const prefix = (jsonUnwrapped.prefix != null) ? jsonUnwrapped.prefix : '';
+      const suffix = (jsonUnwrapped.suffix != null) ? jsonUnwrapped.suffix : '';
 
-        replacement[realKey] = {};
+      replacement[realKey] = {};
 
-        const properties = getClassProperties(jsonClass.type()[0], null, context, {
-          withJsonVirtualPropertyValues: true,
-          withJsonAliases: true
-        });
-        for (const k of properties) {
-          const wrappedKey = prefix + k + suffix;
-          if (Object.hasOwnProperty.call(replacement, wrappedKey)) {
-            replacement[realKey][k] = replacement[wrappedKey];
-            delete replacement[wrappedKey];
-          }
+      const properties = getClassProperties(jsonClass.type()[0], null, context, {
+        withJsonVirtualPropertyValues: true,
+        withJsonAliases: true
+      });
+      for (const k of properties) {
+        const wrappedKey = prefix + k + suffix;
+        if (Object.hasOwnProperty.call(replacement, wrappedKey)) {
+          replacement[realKey][k] = replacement[wrappedKey];
+          delete replacement[wrappedKey];
         }
       }
     }
