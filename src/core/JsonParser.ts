@@ -1154,7 +1154,6 @@ export class JsonParser<T> {
     const currentMainCreator = context.mainCreator[0];
     // convert JsonProperty to Class properties
     const creatorMetadataKeys = getMetadataKeys(currentMainCreator, context);
-
     for (const metadataKey of creatorMetadataKeys) {
       if (metadataKey.includes(':JsonVirtualProperty:') || metadataKey.includes(':JsonAlias:')) {
 
@@ -1167,7 +1166,6 @@ export class JsonParser<T> {
           continue;
         }
 
-        // const realKey = metadataKey.split(/:JsonVirtualProperty:|:JsonAlias:/)[1];
         const realKey = metadataKey.split(':').pop();
 
         const isIgnored =
