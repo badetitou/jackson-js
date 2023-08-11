@@ -647,19 +647,23 @@ export class JsonParser<T> {
                             target: ClassType<any>,
                             propertyKey: string | symbol = null,
                             context: JsonParserTransformerContext) {
-    if (this.propagateDecoratorsCache.has(target)
-      && this.propagateDecoratorsCache.get(target).has(metadataKey)
-      && this.propagateDecoratorsCache.get(target).get(metadataKey).has(propertyKey)) {
-      return this.propagateDecoratorsCache.get(target).get(metadataKey).get(propertyKey);
+    // value can be undefined but not null.
+    const map1 = this.propagateDecoratorsCache.get(target);
+    if (map1 !== undefined) {
+      const map2 = map1.get(metadataKey);
+      if (map2 !== undefined) {
+        if (map2.has(propertyKey)) {
+          return map2.get(propertyKey);
+        } else {
+          return map2.set(propertyKey, getMetadata(metadataKey, target, propertyKey, context)).get(propertyKey);
+        }
+      } else {
+        return map1.set(metadataKey, new Map()).get(metadataKey)
+          .set(propertyKey, getMetadata(metadataKey, target, propertyKey, context)).get(propertyKey);
+      }
     }
-
-    if (!this.propagateDecoratorsCache.has(target)) {
-      this.propagateDecoratorsCache.set(target, new Map<string, Map<string|symbol, JsonDecoratorOptions>>());
-    }
-    if (!this.propagateDecoratorsCache.get(target).has(metadataKey)) {
-      this.propagateDecoratorsCache.get(target).set(metadataKey, new Map<string|symbol, JsonDecoratorOptions>());
-    }
-    return this.propagateDecoratorsCache.get(target).get(metadataKey)
+    return this.propagateDecoratorsCache.set(target, new Map<string, Map<string|symbol, JsonDecoratorOptions>>()).get(target)
+      .set(metadataKey, new Map<string|symbol, JsonDecoratorOptions>()).get(metadataKey)
       .set(propertyKey, getMetadata(metadataKey, target, propertyKey, context)).get(propertyKey);
   }
 
