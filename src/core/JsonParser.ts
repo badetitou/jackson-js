@@ -538,7 +538,7 @@ export class JsonParser<T> {
       deepestClass = getDeepestClass(jsonClass.type());
     } else {
       firstClass = (obj[key] != null) ? obj[key].constructor : Object;
-      deepestClass = (obj[key] != null) ? obj[key].constructor : Object;
+      deepestClass = firstClass;
     }
 
     for (const metadataKey of metadataKeysForDeepestClass) {
