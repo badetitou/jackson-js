@@ -240,8 +240,9 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
                                    options: GetClassPropertiesOptions = {}): string[] => {
 
   const objDefinition = obj ? Object.keys(obj).join(',') : 'null';
-  if (alreadyMappedClassProperties.has(target) && alreadyMappedClassProperties.get(target)[objDefinition] !== undefined)  {
-    return alreadyMappedClassProperties.get(target)[objDefinition];
+  const map1 = alreadyMappedClassProperties.get(target);
+  if (typeof map1 !== 'undefined' && map1[objDefinition] !== undefined)  {
+    return map1[objDefinition];
   }
 
   options = {
@@ -262,11 +263,12 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
   let objKeys = [];
   if (obj != null) {
     objKeys = Object.keys(obj);
-    if (objKeys.includes('constructor') &&
+    const constructorIndex = objKeys.indexOf('constructor');
+    if (constructorIndex !== -1 &&
       typeof obj.constructor === 'function' &&
       !isNativeCode(obj.constructor) &&
       isNativeCode(obj.constructor.constructor)) {
-      objKeys.splice(objKeys.indexOf('constructor'), 1);
+      objKeys.splice(constructorIndex, 1);
     }
   }
 
@@ -349,7 +351,7 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
 
   keysToBeDeleted.forEach((key) => classProperties.delete(key));
 
-  if (!alreadyMappedClassProperties.has(target)) {
+  if (typeof map1 === 'undefined') {
     alreadyMappedClassProperties.set(target, []);
   }
   return alreadyMappedClassProperties.get(target)[objDefinition] = [...classProperties];
