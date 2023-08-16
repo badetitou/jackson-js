@@ -1032,13 +1032,14 @@ const reflectGetMetadataKeyForTargetCache = new Map<Record<string, any>, Map<any
  * @internal
  */
 const cachedReflectGetMetadataKeyForTarget = (metadataKey: any, target: Record<string, any>): any => {
-  if (reflectGetMetadataKeyForTargetCache.has(target)) {
-    if (reflectGetMetadataKeyForTargetCache.get(target).has(metadataKey)) {
-      return reflectGetMetadataKeyForTargetCache.get(target).get(metadataKey);
+  let map1 = reflectGetMetadataKeyForTargetCache.get(target);
+  if (map1 !== undefined) {
+    if (map1.has(metadataKey)) {
+      return map1.get(metadataKey);
     }
   } else {
-    reflectGetMetadataKeyForTargetCache.set(target, new Map());
+    map1 = reflectGetMetadataKeyForTargetCache.set(target, new Map());
   }
-  return reflectGetMetadataKeyForTargetCache.get(target).set(metadataKey, Reflect.getMetadata(metadataKey, target))
+  return map1.set(metadataKey, Reflect.getMetadata(metadataKey, target))
     .get(metadataKey);
 };
