@@ -651,9 +651,9 @@ export class JsonParser<T> {
                             context: JsonParserTransformerContext) {
     // value can be undefined but not null.
     const map1 = this.propagateDecoratorsCache.get(target);
-    if (map1 !== undefined) {
+    if (typeof map1 !== 'undefined') {
       const map2 = map1.get(metadataKey);
-      if (map2 !== undefined) {
+      if (typeof map2 !== 'undefined') {
         if (map2.has(propertyKey)) {
           return map2.get(propertyKey);
         } else {
