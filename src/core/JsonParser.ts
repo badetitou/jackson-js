@@ -555,17 +555,18 @@ export class JsonParser<T> {
     }
 
     for (const metadataKey of metadataKeysParamForDeepestClass) {
-      const indexOfParam = metadataKey.indexOf('Param:');
 
       const jsonDecoratorOptions: JsonDecoratorOptions = this.cachedGetMetadata(metadataKey, currentMainCreator, methodName, context);
 
       if (jsonDecoratorOptions) {
+        const classicMetadataKey = metadataKey.substring(0, metadataKey.indexOf('Param:'));
+
         if (deepestClass != null && methodName != null && argumentIndex != null) {
           const jsonClassParam: JsonClassTypeOptions =
             this.cachedGetMetadata('JsonClassTypeParam:' + argumentIndex, currentMainCreator, methodName, context) as JsonClassTypeOptions;
 
           const metadataKeysWithContext =
-            makeMetadataKeysWithContext(metadataKey.substring(0, indexOfParam),
+            makeMetadataKeysWithContext(classicMetadataKey,
               {contextGroups: jsonDecoratorOptions.contextGroups});
           for (const metadataKeyWithContext of metadataKeysWithContext) {
             decoratorsToBeAppliedForDeepestClass[metadataKeyWithContext] = jsonDecoratorOptions;
@@ -581,7 +582,7 @@ export class JsonParser<T> {
             }
           }
 
-          decoratorsNameFoundForDeepestClass.push(metadataKey.substring(0, indexOfParam));
+          decoratorsNameFoundForDeepestClass.push(classicMetadataKey);
         } else {
           const metadataKeysWithContext =
             makeMetadataKeysWithContext(metadataKey, {contextGroups: jsonDecoratorOptions.contextGroups});
