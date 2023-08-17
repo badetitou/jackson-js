@@ -595,44 +595,43 @@ export class JsonParser<T> {
           }
         }
       }
-    }
 
+      const metadataKeyForFirstClass = 'JsonDeserializeParam:' + argumentIndex;
+      const jsonDecoratorOptionsForFirstClass: JsonDecoratorOptions =
+        this.cachedGetMetadata(metadataKeyForFirstClass, currentMainCreator, methodName, context);
 
-    const metadataKeyForFirstClass = 'JsonDeserializeParam:' + argumentIndex;
-    const jsonDecoratorOptionsForFirstClass: JsonDecoratorOptions =
-      this.cachedGetMetadata(metadataKeyForFirstClass, currentMainCreator, methodName, context);
+      if (jsonDecoratorOptionsForFirstClass) {
+        if (firstClass != null && methodName != null && argumentIndex != null) {
+          const jsonClassParam: JsonClassTypeOptions =
+            this.cachedGetMetadata('JsonClassTypeParam:' + argumentIndex, currentMainCreator, methodName, context);
 
-    if (jsonDecoratorOptionsForFirstClass) {
-      if (firstClass != null && methodName != null && argumentIndex != null) {
-        const jsonClassParam: JsonClassTypeOptions =
-          this.cachedGetMetadata('JsonClassTypeParam:' + argumentIndex, currentMainCreator, methodName, context);
-
-        const metadataKeysWithContext =
-          makeMetadataKeysWithContext('JsonDeserialize',
-            {contextGroups: jsonDecoratorOptionsForFirstClass.contextGroups});
-        for (const metadataKeyWithContext of metadataKeysWithContext) {
-          decoratorsToBeAppliedForFirstClass[metadataKeyWithContext] = jsonDecoratorOptionsForFirstClass;
-        }
-
-        if (jsonClassParam == null) {
-          firstClass = null;
-        } else {
-          const jsonClassMetadataKeysWithContext =
-            makeMetadataKeysWithContext('JsonClassType', {contextGroups: jsonClassParam.contextGroups});
-          for (const metadataKeyWithContext of jsonClassMetadataKeysWithContext) {
-            decoratorsToBeAppliedForFirstClass[metadataKeyWithContext] = jsonClassParam;
+          const metadataKeysWithContext =
+            makeMetadataKeysWithContext('JsonDeserialize',
+              {contextGroups: jsonDecoratorOptionsForFirstClass.contextGroups});
+          for (const metadataKeyWithContext of metadataKeysWithContext) {
+            decoratorsToBeAppliedForFirstClass[metadataKeyWithContext] = jsonDecoratorOptionsForFirstClass;
           }
-        }
 
-        decoratorsNameFoundForFirstClass.push('JsonDeserialize');
-      } else {
-        const metadataKeysWithContext =
-          makeMetadataKeysWithContext(metadataKeyForFirstClass, {contextGroups: jsonDecoratorOptionsForFirstClass.contextGroups});
-        for (const metadataKeyWithContext of metadataKeysWithContext) {
-          decoratorsNameFoundForFirstClass[metadataKeyWithContext] = jsonDecoratorOptionsForFirstClass;
-        }
+          if (jsonClassParam == null) {
+            firstClass = null;
+          } else {
+            const jsonClassMetadataKeysWithContext =
+              makeMetadataKeysWithContext('JsonClassType', {contextGroups: jsonClassParam.contextGroups});
+            for (const metadataKeyWithContext of jsonClassMetadataKeysWithContext) {
+              decoratorsToBeAppliedForFirstClass[metadataKeyWithContext] = jsonClassParam;
+            }
+          }
 
-        decoratorsNameFoundForFirstClass.push(metadataKeyForFirstClass);
+          decoratorsNameFoundForFirstClass.push('JsonDeserialize');
+        } else {
+          const metadataKeysWithContext =
+            makeMetadataKeysWithContext(metadataKeyForFirstClass, {contextGroups: jsonDecoratorOptionsForFirstClass.contextGroups});
+          for (const metadataKeyWithContext of metadataKeysWithContext) {
+            decoratorsNameFoundForFirstClass[metadataKeyWithContext] = jsonDecoratorOptionsForFirstClass;
+          }
+
+          decoratorsNameFoundForFirstClass.push(metadataKeyForFirstClass);
+        }
       }
     }
 
