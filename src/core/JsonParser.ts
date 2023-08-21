@@ -409,9 +409,9 @@ export class JsonParser<T> {
         keys = mapVirtualPropertiesToClassProperties(currentMainCreator, keys, context, {checkSetters: true});
 
         const classPropertiesToBeExcluded: string[] = [];
-
+        const realClassProperties = getClassProperties(currentMainCreator, replacement, context, {withSettersAsProperty: true});
         for (const k of keys) {
-          if (classHasOwnProperty(currentMainCreator, k, replacement, context, {withSettersAsProperty: true})) {
+          if (realClassProperties.includes(k)) {
             const jsonClass: JsonClassTypeOptions = this.cachedGetMetadata('JsonClassType', context.mainCreator[0], k, context);
             this.propagateDecorators(jsonClass, replacement, k, context);
 
