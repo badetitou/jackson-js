@@ -412,8 +412,9 @@ export class JsonParser<T> {
         const realClassProperties = getClassProperties(currentMainCreator, replacement, context, {withSettersAsProperty: true});
         for (const k of keys) {
           if (realClassProperties.includes(k)) {
-            const jsonClass: JsonClassTypeOptions = this.cachedGetMetadata('JsonClassType', context.mainCreator[0], k, context);
-            this.propagateDecorators(jsonClass, replacement, k, context);
+            // Did nothing on test and industrial example
+            // const jsonClass: JsonClassTypeOptions = this.cachedGetMetadata('JsonClassType', context.mainCreator[0], k, context);
+            // this.propagateDecorators(jsonClass, replacement, k, context);
 
             if (this.parseHasJsonIgnore(context, k) || !this.parseIsIncludedByJsonViewProperty(context, k)) {
               classPropertiesToBeExcluded.push(k);
