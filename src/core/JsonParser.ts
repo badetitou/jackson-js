@@ -778,9 +778,6 @@ export class JsonParser<T> {
 
     const jsonCreatorMode = ('mode' in jsonCreator && jsonCreator.mode) ? jsonCreator.mode : undefined;
 
-    const jsonIgnoreProperties: JsonIgnorePropertiesOptions =
-      this.cachedGetMetadata('JsonIgnoreProperties', currentMainCreator, null, context);
-
     const method: any = (hasJsonCreator) ?
       (((jsonCreator as JsonCreatorOptions)._ctor) ?
         (jsonCreator as JsonCreatorOptions)._ctor :
@@ -852,6 +849,8 @@ export class JsonParser<T> {
 
       const hasJsonAnySetter =
         this.cachedHasMetadata('JsonAnySetter', currentMainCreator, null, context);
+      const jsonIgnoreProperties: JsonIgnorePropertiesOptions =
+        this.cachedGetMetadata('JsonIgnoreProperties', currentMainCreator, null, context);
       // add remaining properties and ignore the ones that are not part of "instance"
       for (const key of remainingKeys) {
         const jsonVirtualProperty: JsonPropertyOptions | JsonSetterOptions =
