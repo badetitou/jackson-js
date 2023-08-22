@@ -562,7 +562,7 @@ export class JsonParser<T> {
         if (jsonDecoratorOptions) {
           const classicMetadataKey = metadataKey.substring(0, metadataKey.indexOf('Param:'));
 
-          if (deepestClass != null && methodName != null && argumentIndex != null) {
+          if (deepestClass != null && methodName != null) {
             const jsonClassParam: JsonClassTypeOptions =
               this.cachedGetMetadata('JsonClassTypeParam:' + argumentIndex, currentMainCreator, methodName, context);
 
