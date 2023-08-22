@@ -93,7 +93,7 @@ export class JsonParser<T> {
   /**
    * Cache propagateDecorators
    */
-  propagateDecoratorsCache: Map<Record<string, any>, Map<string, Map<string|symbol, any>>> = new Map();
+  getMetadataCache: Map<Record<string, any>, Map<string, Map<string, any>>> = new Map();
 
   metadataKeysIncludingCache: Map<Record<string, any>, Map<string, any>> = new Map();
 
@@ -534,7 +534,6 @@ export class JsonParser<T> {
 
     for (const metadataKey of metadataKeysForDeepestClass) {
       const jsonDecoratorOptions: JsonDecoratorOptions = this.cachedGetMetadata(metadataKey, currentMainCreator, key, context);
-
       if (jsonDecoratorOptions) {
         const metadataKeysWithContext =
           makeMetadataKeysWithContext(metadataKey, {contextGroups: jsonDecoratorOptions.contextGroups});
@@ -648,10 +647,10 @@ export class JsonParser<T> {
    */
   private cachedGetMetadata<T extends JsonDecoratorOptions>(metadataKey: string,
                                                             target: ClassType<any>,
-                                                            propertyKey: string | symbol = null,
+                                                            propertyKey: string = null,
                                                             context: JsonParserTransformerContext): T {
     // value can be undefined but not null.
-    const map1 = this.propagateDecoratorsCache.get(target);
+    const map1 = this.getMetadataCache.get(target);
     if (typeof map1 !== 'undefined') {
       const map2 = map1.get(metadataKey);
       if (typeof map2 !== 'undefined') {
@@ -665,15 +664,15 @@ export class JsonParser<T> {
           .set(propertyKey, getMetadata(metadataKey, target, propertyKey, context)).get(propertyKey);
       }
     }
-    return this.propagateDecoratorsCache.set(target, new Map<string, Map<string|symbol, T>>()).get(target)
-      .set(metadataKey, new Map<string|symbol, T>()).get(metadataKey)
+    return this.getMetadataCache.set(target, new Map<string, Map<string, T>>()).get(target)
+      .set(metadataKey, new Map<string, T>()).get(metadataKey)
       .set(propertyKey, getMetadata(metadataKey, target, propertyKey, context)).get(propertyKey);
   }
 
   /**
    * This method implements a cache that can be used instead of calling directly the getMetadata of util.ts
    */
-  private cachedHasMetadata(metadataKey: string, target: ClassType<any>, propertyKey: string | symbol = null,
+  private cachedHasMetadata(metadataKey: string, target: ClassType<any>, propertyKey: string = null,
                             context: JsonParserTransformerContext) {
     return this.cachedGetMetadata(metadataKey, target, propertyKey, context) != null;
   }
@@ -1340,8 +1339,7 @@ export class JsonParser<T> {
 
     let jsonManagedReference: JsonManagedReferenceOptions =
       this.cachedGetMetadata('JsonManagedReference', currentMainCreator, key, context);
-    let jsonClassManagedReference: JsonClassTypeOptions =
-      this.cachedGetMetadata('JsonClassType', currentMainCreator, key, context);
+    let jsonClassManagedReference: JsonClassTypeOptions;
 
     if (!jsonManagedReference) {
       const propertySetter = mapVirtualPropertyToClassProperty(currentMainCreator, key, context, {checkSetters: true});
@@ -1354,6 +1352,8 @@ export class JsonParser<T> {
         // eslint-disable-next-line max-len
         throw new JacksonError(`Missing mandatory @JsonClass() decorator for the parameter at index 0 of @JsonManagedReference() decorated ${replacement.constructor.name}.${propertySetter}() method at [Source '${JSON.stringify(obj)}']`);
       }
+    } else {
+      jsonClassManagedReference = this.cachedGetMetadata('JsonClassType', currentMainCreator, key, context);
     }
 
     if (jsonManagedReference && jsonClassManagedReference) {
