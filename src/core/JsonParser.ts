@@ -91,7 +91,7 @@ export class JsonParser<T> {
   defaultContext: JsonParserContext = {};
 
   /**
-   * Cache propagateDecorators
+   * Cache getMetadataCache
    */
   getMetadataCache: Map<Record<string, any>, Map<string, Map<string, any>>> = new Map();
 
