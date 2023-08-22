@@ -768,12 +768,13 @@ export class JsonParser<T> {
 
     const jsonCreatorMetadataKey = 'JsonCreator:' + ((withCreatorName != null) ? withCreatorName : defaultCreatorName);
 
-    const hasJsonCreator =
-      this.cachedHasMetadata(jsonCreatorMetadataKey, currentMainCreator, null, context);
+    let jsonCreator: JsonCreatorOptions | ClassType<any>
+      = this.cachedGetMetadata(jsonCreatorMetadataKey, currentMainCreator, null, context);
+    const hasJsonCreator = jsonCreator != null;
 
-    const jsonCreator: JsonCreatorOptions | ClassType<any> = (hasJsonCreator) ?
-      this.cachedGetMetadata(jsonCreatorMetadataKey, currentMainCreator, null, context) :
-      currentMainCreator;
+    if (!hasJsonCreator) {
+      jsonCreator = currentMainCreator;
+    }
 
     const jsonCreatorMode = ('mode' in jsonCreator && jsonCreator.mode) ? jsonCreator.mode : undefined;
 
