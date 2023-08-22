@@ -823,7 +823,7 @@ export class JsonParser<T> {
       const jsonAppendAttributesToBeExcluded = [];
       const jsonAppend: JsonAppendOptions =
         this.cachedGetMetadata('JsonAppend', currentMainCreator, null, context);
-      if (jsonAppend && jsonAppend.attrs && jsonAppend.attrs.length > 0) {
+      if (jsonAppend && jsonAppend.attrs) {
         for (const attr of jsonAppend.attrs) {
           if (attr.value) {
             jsonAppendAttributesToBeExcluded.push(attr.value);
