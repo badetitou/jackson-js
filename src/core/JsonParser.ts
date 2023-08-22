@@ -1160,11 +1160,11 @@ export class JsonParser<T> {
   private parseJsonVirtualPropertyAndJsonAlias(replacement: any, context: JsonParserTransformerContext): void {
     const currentMainCreator = context.mainCreator[0];
     // convert JsonProperty to Class properties
-    const aliasMetadataKeys = this.cachedGetMetadataKeysIncluding(currentMainCreator, context, ':JsonAlias:');
     const virtualMetadataKeys = this.cachedGetMetadataKeysIncluding(currentMainCreator, context, ':JsonVirtualProperty:');
     for (const metadataKey of virtualMetadataKeys) {
       this.applyJsonVirtualPropertyAndJsonAlias(replacement, metadataKey, currentMainCreator, context);
     }
+    const aliasMetadataKeys = this.cachedGetMetadataKeysIncluding(currentMainCreator, context, ':JsonAlias:');
     for (const metadataKey of aliasMetadataKeys) {
       this.applyJsonVirtualPropertyAndJsonAlias(replacement, metadataKey, currentMainCreator, context);
     }
