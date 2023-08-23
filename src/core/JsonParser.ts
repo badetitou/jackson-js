@@ -1285,7 +1285,18 @@ export class JsonParser<T> {
     this.propagateDecorators(jsonClass, obj, key, context, methodName, argumentIndex);
 
     // BVER: was cloneDeep
-    const newContext = clone(context);
+    // const newContext =  clone(context);
+    const newContext = {
+      withContextGroups: [],
+      features: {
+        deserialization: {}
+      },
+      deserializers: [],
+      injectableValues: {},
+      decoratorsEnabled: {},
+      _internalDecorators: new Map(),
+      ...context
+    };
 
     if (jsonClass && jsonClass.type) {
       newContext.mainCreator = jsonClass.type();
