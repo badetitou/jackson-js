@@ -847,8 +847,9 @@ export class JsonParser<T> {
       const remainingKeys = classKeys.filter(k => Object.hasOwnProperty.call(obj, k) && !keysToBeExcluded.has(k));
       let unknownKeys = [];
 
-      const hasJsonAnySetter =
-        this.cachedHasMetadata('JsonAnySetter', currentMainCreator, null, context);
+      const jsonAnySetter: JsonAnySetterOptions =
+        this.cachedGetMetadata('JsonAnySetter', instance.constructor, null, context);
+      const hasJsonAnySetter = jsonAnySetter != null;
       const jsonIgnoreProperties: JsonIgnorePropertiesOptions =
         this.cachedGetMetadata('JsonIgnoreProperties', currentMainCreator, null, context);
       // add remaining properties and ignore the ones that are not part of "instance"
@@ -870,7 +871,8 @@ export class JsonParser<T> {
           instance[key] = this.parseJsonClassType(context, globalContext, obj, key, parent);
         } else if (hasJsonAnySetter && Object.hasOwnProperty.call(obj, key)) {
           // for any other unrecognized properties found
-          this.parseJsonAnySetter(instance, obj, key, context);
+          // this.parseJsonAnySetter(instance, obj, key, context);
+          this.applyParseJsonAnySetter(jsonAnySetter, instance, obj, key);
         } else if (!classHasOwnProperty(currentMainCreator, key, null, context) &&
           ( (jsonIgnoreProperties == null && context.features.deserialization.FAIL_ON_UNKNOWN_PROPERTIES) ||
             (jsonIgnoreProperties != null && !jsonIgnoreProperties.ignoreUnknown)) ) {
@@ -1418,9 +1420,7 @@ export class JsonParser<T> {
    * @param key
    * @param context
    */
-  private parseJsonAnySetter(replacement: any, obj: any, key: string, context: JsonParserTransformerContext): void {
-    const jsonAnySetter: JsonAnySetterOptions =
-      this.cachedGetMetadata('JsonAnySetter', replacement.constructor, null, context);
+  private applyParseJsonAnySetter(jsonAnySetter: JsonAnySetterOptions , replacement: any, obj: any, key: string): void {
     if (jsonAnySetter && replacement[jsonAnySetter._propertyKey]) {
       if (typeof replacement[jsonAnySetter._propertyKey] === 'function') {
         replacement[jsonAnySetter._propertyKey](key, obj[key]);
