@@ -4,7 +4,6 @@
  */
 
 import {
-  classHasOwnProperty,
   getArgumentNames,
   getClassProperties,
   getDeepestClass,
@@ -852,6 +851,8 @@ export class JsonParser<T> {
       const hasJsonAnySetter = jsonAnySetter != null;
       const jsonIgnoreProperties: JsonIgnorePropertiesOptions =
         this.cachedGetMetadata('JsonIgnoreProperties', currentMainCreator, null, context);
+      const creatorProperties = getClassProperties(currentMainCreator, null, context);
+
       // add remaining properties and ignore the ones that are not part of "instance"
       for (const key of remainingKeys) {
         const jsonVirtualProperty: JsonPropertyOptions | JsonSetterOptions =
@@ -866,14 +867,14 @@ export class JsonParser<T> {
             // then this property has only getter, so we can skip it.
             continue;
           }
-        } else if ((Object.hasOwnProperty.call(obj, key) && classHasOwnProperty(currentMainCreator, key, null, context)) ||
+        } else if ((Object.hasOwnProperty.call(obj, key) && creatorProperties.includes(key)) ||
           currentMainCreator.name === 'Object') {
           instance[key] = this.parseJsonClassType(context, globalContext, obj, key, parent);
         } else if (hasJsonAnySetter && Object.hasOwnProperty.call(obj, key)) {
           // for any other unrecognized properties found
           // this.parseJsonAnySetter(instance, obj, key, context);
           this.applyParseJsonAnySetter(jsonAnySetter, instance, obj, key);
-        } else if (!classHasOwnProperty(currentMainCreator, key, null, context) &&
+        } else if (!creatorProperties.includes(key) &&
           ( (jsonIgnoreProperties == null && context.features.deserialization.FAIL_ON_UNKNOWN_PROPERTIES) ||
             (jsonIgnoreProperties != null && !jsonIgnoreProperties.ignoreUnknown)) ) {
           unknownKeys.push(key);
