@@ -1779,7 +1779,18 @@ export class JsonParser<T> {
 
     let newIterable: any;
     // BVER was cloneDeep
-    const newContext = clone(context);
+    // const newContext = clone(context);
+    const newContext = {
+      withContextGroups: [],
+      features: {
+        deserialization: {}
+      },
+      deserializers: [],
+      injectableValues: {},
+      decoratorsEnabled: {},
+      _internalDecorators: new Map(),
+      ...context
+    };
 
     if (currentCreators.length > 1 && currentCreators[1] instanceof Array) {
       newContext.mainCreator = currentCreators[1] as [ClassType<any>];
