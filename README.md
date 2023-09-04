@@ -1,7 +1,7 @@
 # jackson-js
 
-[![npm downloads](https://img.shields.io/npm/dm/@badetitou/jackson-js.svg)](https://www.npmjs.com/package/jackson-js)
-[![jackson-js version](https://img.shields.io/npm/v/@badetitou/jackson-js.svg)](https://www.npmjs.com/package/jackson-js)
+[![npm downloads](https://img.shields.io/npm/dm/@badetitou/jackson-js.svg)](https://www.npmjs.com/package/@badetitou/jackson-js)
+[![jackson-js version](https://img.shields.io/npm/v/@badetitou/jackson-js.svg)](https://www.npmjs.com/package/@badetitou/jackson-js)
 [![CI](https://github.com/badetitou/jackson-js/actions/workflows/ci.yml/badge.svg)](https://github.com/badetitou/jackson-js/actions/workflows/ci.yml)
 [![Coverage Status](https://coveralls.io/repos/github/badetitou/jackson-js/badge.svg?branch=main)](https://coveralls.io/github/badetitou/jackson-js?branch=main)
 [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](/LICENSE)
