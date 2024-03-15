@@ -1,3 +1,4 @@
+const ESLintPlugin = require('eslint-webpack-plugin');
 const webpack = require('webpack');
 const path = require('path');
 
@@ -13,9 +14,6 @@ const defaultConfig = {
             options: {
               configFile: path.resolve(__dirname, 'tsconfig.prod.json'),
             }
-          },
-          {
-            loader: 'eslint-loader'
           }
         ]
       }
@@ -26,7 +24,7 @@ const defaultConfig = {
   },
   devtool: 'source-map',
   mode: 'production',
-  plugins: []
+  plugins: [new ESLintPlugin({})]
 };
 
 const serverConfig = {
