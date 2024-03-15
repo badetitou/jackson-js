@@ -21,6 +21,7 @@ import {
 import 'reflect-metadata';
 import { JacksonError } from './core/JacksonError';
 import { DefaultContextGroup } from './core/DefaultContextGroup';
+// eslint-disable-next-line camelcase
 import { find_metadata_by_metadata_key_with_context } from 'jackson-wasm';
 
 /**
@@ -82,19 +83,19 @@ export const makeMetadataKeysWithContext = (
 ): string[] =>
   options.contextGroups != null && options.contextGroups.length > 0
     ? options.contextGroups.map((contextGroup) =>
-        makeMetadataKeyWithContext(key, {
-          prefix: options.prefix,
-          suffix: options.suffix,
-          contextGroup,
-        })
-      )
+      makeMetadataKeyWithContext(key, {
+        prefix: options.prefix,
+        suffix: options.suffix,
+        contextGroup,
+      })
+    )
     : [
-        makeMetadataKeyWithContext(key, {
-          prefix: options.prefix,
-          suffix: options.suffix,
-          contextGroup: null,
-        }),
-      ];
+      makeMetadataKeyWithContext(key, {
+        prefix: options.prefix,
+        suffix: options.suffix,
+        contextGroup: null,
+      }),
+    ];
 
 /**
  * @internal
@@ -302,8 +303,8 @@ export interface GetClassPropertiesOptions {
  * @internal
  */
 const alreadyMappedClassProperties: WeakMap<
-  Record<string, any>,
-  Array<any>
+Record<string, any>,
+Array<any>
 > = new WeakMap();
 
 /**
@@ -372,9 +373,9 @@ export const getClassProperties = (
         }
         // Normal behavior
         const jsonVirtualProperty:
-          | JsonPropertyOptions
-          | JsonGetterOptions
-          | JsonSetterOptions = cachedReflectGetMetadataKeyForTarget(
+        | JsonPropertyOptions
+        | JsonGetterOptions
+        | JsonSetterOptions = cachedReflectGetMetadataKeyForTarget(
           metadataKey,
           target
         );
@@ -544,8 +545,8 @@ export const virtualPropertiesToClassPropertiesMapping = (
  * @internal
  */
 const alreadyMappedType: WeakMap<
-  Record<string, any>,
-  Map<string, Set<string>>
+Record<string, any>,
+Map<string, Set<string>>
 > = new WeakMap();
 
 /**
@@ -596,9 +597,9 @@ export const internVirtualPropertyToClassPropertiesMapping = (
         }
 
         const jsonVirtualProperty:
-          | JsonPropertyOptions
-          | JsonGetterOptions
-          | JsonSetterOptions = cachedReflectGetMetadataKeyForTarget(
+        | JsonPropertyOptions
+        | JsonGetterOptions
+        | JsonSetterOptions = cachedReflectGetMetadataKeyForTarget(
           metadataKey,
           target
         );
@@ -678,9 +679,9 @@ export const classPropertiesToVirtualPropertiesMapping = (
 
   for (const classProperty of classProperties) {
     let jsonVirtualProperty:
-      | JsonPropertyOptions
-      | JsonGetterOptions
-      | JsonSetterOptions = null;
+    | JsonPropertyOptions
+    | JsonGetterOptions
+    | JsonSetterOptions = null;
 
     for (const contextGroup of contextGroupsWithDefault) {
       const metadataKeyWithContext = makeMetadataKeyWithContext(
@@ -878,16 +879,16 @@ export const isObjLiteral = (_obj: any): boolean => {
   return typeof _obj !== 'object' || _obj === null
     ? false
     : (() => {
-        while (true) {
-          if (
-            Object.getPrototypeOf((_test = Object.getPrototypeOf(_test))) ===
+      while (true) {
+        if (
+          Object.getPrototypeOf((_test = Object.getPrototypeOf(_test))) ===
             null
-          ) {
-            break;
-          }
+        ) {
+          break;
         }
-        return Object.getPrototypeOf(_obj) === _test;
-      })();
+      }
+      return Object.getPrototypeOf(_obj) === _test;
+    })();
 };
 
 /**
@@ -908,7 +909,7 @@ export const isFloat = (n: number) => Number(n) === n && n % 1 !== 0;
  */
 // export const findMetadataByMetadataKeyWithContext = <T extends JsonDecoratorOptions>(
 //   metadataKeyWithContext: string,
-//   target: Record<string, any>,
+// target: Record<string, any>,
 //   propertyKey: string | symbol = null,
 //   context: JsonStringifierParserCommonContext<any>): T => {
 
@@ -1006,11 +1007,11 @@ export const getMetadata = <T extends JsonDecoratorOptions>(
     'jackson:'
   )
     ? findMetadataByMetadataKeyWithContext(
-        metadataKey,
-        target,
-        propertyKey,
-        context
-      )
+      metadataKey,
+      target,
+      propertyKey,
+      context
+    )
     : findMetadata(metadataKey, target, propertyKey, context);
 
   if (jsonDecoratorOptions && context && context.decoratorsEnabled) {
@@ -1153,16 +1154,16 @@ export const getDefaultPrimitiveTypeValue = (
   ctor: ClassType<any>
 ): any | null => {
   switch (ctor) {
-    case Number:
-      return 0;
-    case Boolean:
-      return false;
-    case String:
-      return '';
-    default:
-      if (hasBigInt && ctor === BigInt) {
-        return BigInt(0);
-      }
+  case Number:
+    return 0;
+  case Boolean:
+    return false;
+  case String:
+    return '';
+  default:
+    if (hasBigInt && ctor === BigInt) {
+      return BigInt(0);
+    }
   }
   return null;
 };
@@ -1324,8 +1325,8 @@ const cachedReflectGetMetadataKeys = (target: Record<string, any>): any[] => {
 
 // Cache call of Reflect.getMetadataKeys
 const reflectGetMetadataKeyForTargetCache = new Map<
-  Record<string, any>,
-  Map<any, any>
+Record<string, any>,
+Map<any, any>
 >();
 
 /**

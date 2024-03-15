@@ -11,7 +11,7 @@ extern "C" {
     pub type JsonStringifierParserCommonContext;
 
     #[wasm_bindgen(method, getter)]
-    pub fn _internal_decorators(this: &JsonStringifierParserCommonContext) -> Option<js_sys::Map>;
+    pub fn _internalDecorators(this: &JsonStringifierParserCommonContext) -> Option<js_sys::Map>;
 }
 
 #[allow(non_snake_case)]
@@ -21,7 +21,11 @@ mod Reflect {
     #[wasm_bindgen]
     extern "C" {
         #[wasm_bindgen(js_namespace = Reflect)]
-        pub fn getMetadata(metadataKey: &str, target: &JsValue, property_key: &str) -> Option<crate::util::JsonDecoratorOptions>;
+        pub fn getMetadata(
+            metadataKey: &str,
+            target: &JsValue,
+            property_key: &str,
+        ) -> Option<crate::util::JsonDecoratorOptions>;
 
     }
 }
@@ -38,8 +42,6 @@ mod Object {
     }
 }
 
-
-
 #[wasm_bindgen]
 pub fn find_metadata_by_metadata_key_with_context(
     metadata_key_with_context: &str,
@@ -54,7 +56,11 @@ pub fn find_metadata_by_metadata_key_with_context(
     match property_key {
         Some(_) => {
             // get metadata from property_key
-            json_decorator_options = Reflect::getMetadata(metadata_key_with_context, &target, property_key.unwrap().as_str());
+            json_decorator_options = Reflect::getMetadata(
+                metadata_key_with_context,
+                &target,
+                property_key.unwrap().as_str(),
+            );
         }
         None => {
             // get metadata from target
@@ -64,27 +70,49 @@ pub fn find_metadata_by_metadata_key_with_context(
 
     let has_context = context.is_some();
     let concrete_context = context.unwrap();
-
     let mut parent = target;
-    while json_decorator_options.is_none() && parent.is_object() {
-        if json_decorator_options.is_none() && !has_property_key && has_context && !concrete_context._internal_decorators().is_some()  {
-            let internal_map: js_sys::Map = concrete_context._internal_decorators().unwrap();
-            let map : Option<InternalDecorators> = Some(InternalDecorators::from(js_sys::Map::get(&internal_map, &parent)));
-            
+
+    while json_decorator_options.is_none() && parent_name(&parent).is_ok() {
+
+
+        if json_decorator_options.is_none()
+            && !has_property_key
+            && has_context
+            && concrete_context._internalDecorators() != None
+        {
+
+            let internal_map: js_sys::Map = concrete_context._internalDecorators().unwrap();
+            let map: Option<InternalDecorators> = Some(InternalDecorators::from(js_sys::Map::get(
+                &internal_map,
+                &parent,
+            )));
+
             if map.is_some() {
-                match js_sys::Reflect::get(&map.unwrap(), &JsValue::from_str(metadata_key_with_context))
-                {
+                match js_sys::Reflect::get(
+                    &map.unwrap(),
+                    &JsValue::from_str(metadata_key_with_context),
+                ) {
                     Ok(value) => {
+                        web_sys::console::log_1(&"can be ok ".into());
                         json_decorator_options = Some(value.into());
                     }
-                    Err(_) => {}
+                    Err(_) => {
+                        json_decorator_options = None;
+                    }
                 }
             }
         }
+        // web_sys::console::log_1(&"XX go here".into());
 
         parent = Object::getPrototypeOf(parent);
     }
 
-    // Convert the result to JsValue before returning
-    return json_decorator_options.unwrap().into()
+    if json_decorator_options.is_some() {
+        return json_decorator_options.unwrap().into();
+    }
+    return JsValue::null();
+}
+
+fn parent_name(parent: &JsValue) -> Result<JsValue, JsValue> {
+    return js_sys::Reflect::get(parent, &JsValue::from_str("name"));
 }
