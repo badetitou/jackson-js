@@ -5,21 +5,23 @@ import {
   ExpressionStatement,
   FunctionDeclaration,
   FunctionExpression,
-  Node
+  Node,
 } from 'estree';
 import {
-  ClassType, CustomMapper, JsonAliasOptions,
+  ClassType,
+  CustomMapper,
+  JsonAliasOptions,
   JsonDecorator,
-  JsonDecoratorOptions, JsonGetterOptions, JsonPropertyOptions, JsonSetterOptions,
+  JsonDecoratorOptions,
+  JsonGetterOptions,
+  JsonPropertyOptions,
+  JsonSetterOptions,
   JsonStringifierParserCommonContext,
 } from './@types';
 import 'reflect-metadata';
-import {
-  JacksonError
-} from './core/JacksonError';
-import {
-  DefaultContextGroup
-} from './core/DefaultContextGroup';
+import { JacksonError } from './core/JacksonError';
+import { DefaultContextGroup } from './core/DefaultContextGroup';
+import { find_metadata_by_metadata_key_with_context } from 'jackson-wasm';
 
 /**
  * Flag for testing if BigInt is supported
@@ -38,18 +40,28 @@ export interface MakeMetadataKeyWithContextOptions {
 /**
  * @internal
  */
-export const makeMetadataKeyWithContext = (key: string, options: MakeMetadataKeyWithContextOptions = {}): string => {
+export const makeMetadataKeyWithContext = (
+  key: string,
+  options: MakeMetadataKeyWithContextOptions = {}
+): string => {
   const regExp = /^[\w]+$/;
   if (options.contextGroup != null && !regExp.test(options.contextGroup)) {
     // eslint-disable-next-line max-len
-    throw new JacksonError(`Invalid context group name "${options.contextGroup}" found! The context group name must match "/^[\\w]+$/" regular expression, that is a non-empty string which contains any alphanumeric character including the underscore.`);
+    throw new JacksonError(
+      `Invalid context group name "${options.contextGroup}" found! The context group name must match "/^[\\w]+$/" regular expression, that is a non-empty string which contains any alphanumeric character including the underscore.`
+    );
   }
 
-  return 'jackson:' +
-    (options.contextGroup != null ? options.contextGroup : DefaultContextGroup) + ':' +
+  return (
+    'jackson:' +
+    (options.contextGroup != null
+      ? options.contextGroup
+      : DefaultContextGroup) +
+    ':' +
     (options.prefix != null ? options.prefix + ':' : '') +
     key +
-    (options.suffix != null ? ':' + options.suffix : '');
+    (options.suffix != null ? ':' + options.suffix : '')
+  );
 };
 
 /**
@@ -64,10 +76,25 @@ export interface MakeMetadataKeysWithContextOptions {
 /**
  * @internal
  */
-export const makeMetadataKeysWithContext = (key: string, options: MakeMetadataKeysWithContextOptions): string[] =>
-  (options.contextGroups != null && options.contextGroups.length > 0) ? options.contextGroups.map((contextGroup) =>
-    makeMetadataKeyWithContext(key, {prefix: options.prefix, suffix: options.suffix, contextGroup})
-  ) : [makeMetadataKeyWithContext(key, {prefix: options.prefix, suffix: options.suffix, contextGroup: null})];
+export const makeMetadataKeysWithContext = (
+  key: string,
+  options: MakeMetadataKeysWithContextOptions
+): string[] =>
+  options.contextGroups != null && options.contextGroups.length > 0
+    ? options.contextGroups.map((contextGroup) =>
+        makeMetadataKeyWithContext(key, {
+          prefix: options.prefix,
+          suffix: options.suffix,
+          contextGroup,
+        })
+      )
+    : [
+        makeMetadataKeyWithContext(key, {
+          prefix: options.prefix,
+          suffix: options.suffix,
+          contextGroup: null,
+        }),
+      ];
 
 /**
  * @internal
@@ -80,37 +107,51 @@ export interface DefineMetadataOptions {
 /**
  * @internal
  */
-export const defineMetadata =
-  (metadataKey: any, metadataValue: JsonDecoratorOptions, target: Record<string, any>, propertyKey: string | symbol = null,
-   options: DefineMetadataOptions = {}) => {
-    const makeMetadataKeysWithContextOptions: MakeMetadataKeysWithContextOptions = {
+export const defineMetadata = (
+  metadataKey: any,
+  metadataValue: JsonDecoratorOptions,
+  target: Record<string, any>,
+  propertyKey: string | symbol = null,
+  options: DefineMetadataOptions = {}
+) => {
+  const makeMetadataKeysWithContextOptions: MakeMetadataKeysWithContextOptions =
+    {
       contextGroups: metadataValue.contextGroups,
-      ...options
+      ...options,
     };
 
-    makeMetadataKeysWithContext(metadataKey, makeMetadataKeysWithContextOptions).forEach((metadataKeyWithContext) => {
-      if (propertyKey == null) {
-        Reflect.defineMetadata(metadataKeyWithContext, metadataValue, target);
-      } else {
-        Reflect.defineMetadata(metadataKeyWithContext, metadataValue, target, propertyKey);
-      }
-    });
-  };
+  makeMetadataKeysWithContext(
+    metadataKey,
+    makeMetadataKeysWithContextOptions
+  ).forEach((metadataKeyWithContext) => {
+    if (propertyKey == null) {
+      Reflect.defineMetadata(metadataKeyWithContext, metadataValue, target);
+    } else {
+      Reflect.defineMetadata(
+        metadataKeyWithContext,
+        metadataValue,
+        target,
+        propertyKey
+      );
+    }
+  });
+};
 
 /**
  * https://stackoverflow.com/a/43197340/4637638
  * @internal
  */
 export const isClass = (obj): boolean => {
-  const isCtorClass = obj.constructor
-    && obj.constructor.toString().substring(0, 5) === 'class';
+  const isCtorClass =
+    obj.constructor && obj.constructor.toString().substring(0, 5) === 'class';
 
   if (obj.prototype === undefined) {
     return isCtorClass || !isFunction(obj);
   }
-  const isPrototypeCtorClass = obj.prototype.constructor
-    && obj.prototype.constructor.toString
-    && obj.prototype.constructor.toString().substring(0, 5) === 'class';
+  const isPrototypeCtorClass =
+    obj.prototype.constructor &&
+    obj.prototype.constructor.toString &&
+    obj.prototype.constructor.toString().substring(0, 5) === 'class';
   return isCtorClass || isPrototypeCtorClass || !isFunction(obj);
 };
 
@@ -120,7 +161,9 @@ export const isClass = (obj): boolean => {
  */
 export const isFunction = (funcOrClass: any): boolean => {
   const propertyNames = Object.getOwnPropertyNames(funcOrClass);
-  return (!propertyNames.includes('prototype') || propertyNames.includes('arguments'));
+  return (
+    !propertyNames.includes('prototype') || propertyNames.includes('arguments')
+  );
 };
 
 /**
@@ -128,20 +171,34 @@ export const isFunction = (funcOrClass: any): boolean => {
  */
 export const makeDecorator = <T>(
   options: (...args: any[]) => JsonDecoratorOptions,
-  decorator: JsonDecorator): any => {
+  decorator: JsonDecorator
+): any => {
   const DecoratorFactory = (...args: any[]): any => {
     const target: Record<string, any> = args[0];
     const propertyKey: null | string | symbol = args[1];
-    const descriptorOrParamIndex: null | number | TypedPropertyDescriptor<any> = args[2];
+    const descriptorOrParamIndex: null | number | TypedPropertyDescriptor<any> =
+      args[2];
 
-    if ((typeof target === 'function' || propertyKey != null || descriptorOrParamIndex != null) ||
-      descriptorOrParamIndex != null && typeof descriptorOrParamIndex === 'number') {
+    if (
+      typeof target === 'function' ||
+      propertyKey != null ||
+      descriptorOrParamIndex != null ||
+      (descriptorOrParamIndex != null &&
+        typeof descriptorOrParamIndex === 'number')
+    ) {
       return decorator(options(), target, propertyKey, descriptorOrParamIndex);
     } else {
-      return <T>(targetDecorator: Record<string, any>,
+      return <T>(
+        targetDecorator: Record<string, any>,
         propertyKeyDecorator?: string | symbol,
-        descriptor?: TypedPropertyDescriptor<T>): any =>
-        decorator(options(args[0]), targetDecorator, propertyKeyDecorator, descriptor);
+        descriptor?: TypedPropertyDescriptor<T>
+      ): any =>
+        decorator(
+          options(args[0]),
+          targetDecorator,
+          propertyKeyDecorator,
+          descriptor
+        );
     }
   };
   return DecoratorFactory;
@@ -152,43 +209,55 @@ export const makeDecorator = <T>(
  */
 export const makeJacksonDecorator = <T>(
   options: (...args: any[]) => JsonDecoratorOptions,
-  decorator: JsonDecorator): any => makeDecorator<T>(
-  options,
-  (o: JsonDecoratorOptions, target, propertyKey, descriptorOrParamIndex) => {
+  decorator: JsonDecorator
+): any =>
+  makeDecorator<T>(
+    options,
+    (o: JsonDecoratorOptions, target, propertyKey, descriptorOrParamIndex) => {
+      if (propertyKey != null) {
+        o._propertyKey = propertyKey.toString();
+      }
+      if (
+        descriptorOrParamIndex != null &&
+        typeof descriptorOrParamIndex !== 'number'
+      ) {
+        o._descriptor = descriptorOrParamIndex;
+      }
 
-    if (propertyKey != null) {
-      o._propertyKey = propertyKey.toString();
+      const value = decorator(o, target, propertyKey, descriptorOrParamIndex);
+      if (value != null) {
+        return value;
+      }
+      if (typeof descriptorOrParamIndex !== 'number') {
+        return descriptorOrParamIndex;
+      }
     }
-    if (descriptorOrParamIndex != null && typeof descriptorOrParamIndex !== 'number') {
-      o._descriptor = descriptorOrParamIndex;
-    }
-
-    const value = decorator(o, target, propertyKey, descriptorOrParamIndex);
-    if (value != null) {
-      return value;
-    }
-    if (typeof descriptorOrParamIndex !== 'number') {
-      return descriptorOrParamIndex;
-    }
-  });
+  );
 
 /**
  * https://github.com/rphansen91/es-arguments/blob/master/src/arguments.js#L3
  * @internal
  */
-const pluckPattern = (pattern): string => ['{',
-  pattern.map(({ key }) => key.name).join(', '),
-  '}'].join(' ');
+const pluckPattern = (pattern): string =>
+  ['{', pattern.map(({ key }) => key.name).join(', '), '}'].join(' ');
 
 /**
  * https://github.com/rphansen91/es-arguments/blob/master/src/arguments.js#L9
  * @internal
  */
 const pluckParamName = (param): string => {
-  if (param.name) {return param.name; }
-  if (param.left) {return pluckParamName(param.left); }
-  if (param.properties) {return pluckPattern(param.properties); }
-  if (param.type === 'RestElement') {return '...' + pluckParamName(param.argument); }
+  if (param.name) {
+    return param.name;
+  }
+  if (param.left) {
+    return pluckParamName(param.left);
+  }
+  if (param.properties) {
+    return pluckPattern(param.properties);
+  }
+  if (param.type === 'RestElement') {
+    return '...' + pluckParamName(param.argument);
+  }
   return;
 };
 
@@ -200,7 +269,8 @@ const nativeCodeRegex = /{\s*\[native code]\s*}$/;
  * @param value
  * @internal
  */
-export const isNativeCode = (value: Function | string): boolean => !!nativeCodeRegex.exec(value.toString());
+export const isNativeCode = (value: Function | string): boolean =>
+  !!nativeCodeRegex.exec(value.toString());
 
 /**
  * @internal
@@ -231,17 +301,23 @@ export interface GetClassPropertiesOptions {
 /**
  * @internal
  */
-const alreadyMappedClassProperties: WeakMap<Record<string, any>, Array<any>> = new WeakMap();
+const alreadyMappedClassProperties: WeakMap<
+  Record<string, any>,
+  Array<any>
+> = new WeakMap();
 
 /**
  * @internal
  */
-export const getClassProperties = (target: Record<string, any>, obj: any = null, context: JsonStringifierParserCommonContext<any>,
-                                   options: GetClassPropertiesOptions = {}): string[] => {
-
+export const getClassProperties = (
+  target: Record<string, any>,
+  obj: any = null,
+  context: JsonStringifierParserCommonContext<any>,
+  options: GetClassPropertiesOptions = {}
+): string[] => {
   const objDefinition = obj ? Object.keys(obj).join(',') : 'null';
   const map1 = alreadyMappedClassProperties.get(target);
-  if (typeof map1 !== 'undefined' && map1[objDefinition] !== undefined)  {
+  if (typeof map1 !== 'undefined' && map1[objDefinition] !== undefined) {
     return map1[objDefinition];
   }
 
@@ -252,22 +328,24 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
     withSetterVirtualProperties: false,
     withJsonVirtualPropertyValues: false,
     withJsonAliases: false,
-    ...options
+    ...options,
   };
 
   const contextGroupsWithDefault = [
-    ...(context.withContextGroups  || []),
-    DefaultContextGroup
+    ...(context.withContextGroups || []),
+    DefaultContextGroup,
   ];
 
   let objKeys = [];
   if (obj != null) {
     objKeys = Object.keys(obj);
     const constructorIndex = objKeys.indexOf('constructor');
-    if (constructorIndex !== -1 &&
+    if (
+      constructorIndex !== -1 &&
       typeof obj.constructor === 'function' &&
       !isNativeCode(obj.constructor) &&
-      isNativeCode(obj.constructor.constructor)) {
+      isNativeCode(obj.constructor.constructor)
+    ) {
       objKeys.splice(constructorIndex, 1);
     }
   }
@@ -278,21 +356,34 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
 
   for (const metadataKey of metadataKeys) {
     if (metadataKey.startsWith('jackson:')) {
-      const isJsonVirtualProperty = metadataKey.includes(':JsonVirtualProperty:');
+      const isJsonVirtualProperty = metadataKey.includes(
+        ':JsonVirtualProperty:'
+      );
 
       if (isJsonVirtualProperty) {
         // Check if I should continue
-        const metadataKeyFoundInContext =
-          isMetadataKeyFoundInContext(metadataKey, 'JsonVirtualProperty', contextGroupsWithDefault);
+        const metadataKeyFoundInContext = isMetadataKeyFoundInContext(
+          metadataKey,
+          'JsonVirtualProperty',
+          contextGroupsWithDefault
+        );
         if (!metadataKeyFoundInContext) {
           continue;
         }
         // Normal behavior
-        const jsonVirtualProperty: JsonPropertyOptions | JsonGetterOptions | JsonSetterOptions =
-          cachedReflectGetMetadataKeyForTarget(metadataKey, target);
+        const jsonVirtualProperty:
+          | JsonPropertyOptions
+          | JsonGetterOptions
+          | JsonSetterOptions = cachedReflectGetMetadataKeyForTarget(
+          metadataKey,
+          target
+        );
 
-        if (jsonVirtualProperty && jsonVirtualProperty._descriptor != null
-            && typeof jsonVirtualProperty._descriptor.value === 'function') {
+        if (
+          jsonVirtualProperty &&
+          jsonVirtualProperty._descriptor != null &&
+          typeof jsonVirtualProperty._descriptor.value === 'function'
+        ) {
           if (jsonVirtualProperty._propertyKey.startsWith('get')) {
             if (options.withGetterVirtualProperties) {
               classProperties.add(jsonVirtualProperty.value);
@@ -315,30 +406,42 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
           }
         }
         classProperties.add(jsonVirtualProperty._propertyKey);
-        if (options.withJsonVirtualPropertyValues && jsonVirtualProperty.value != null) {
+        if (
+          options.withJsonVirtualPropertyValues &&
+          jsonVirtualProperty.value != null
+        ) {
           classProperties.add(jsonVirtualProperty.value);
         }
-      } else if (metadataKey.includes(':JsonAlias:') && options.withJsonAliases) {
-        const metadataKeyFoundInContext = isMetadataKeyFoundInContext(metadataKey, 'JsonAlias', contextGroupsWithDefault);
+      } else if (
+        metadataKey.includes(':JsonAlias:') &&
+        options.withJsonAliases
+      ) {
+        const metadataKeyFoundInContext = isMetadataKeyFoundInContext(
+          metadataKey,
+          'JsonAlias',
+          contextGroupsWithDefault
+        );
         if (!metadataKeyFoundInContext) {
           continue;
         }
         const suffix = metadataKey.split(':').pop();
         classProperties.add(suffix);
-        const jsonAlias: JsonAliasOptions = cachedReflectGetMetadataKeyForTarget(metadataKey, target);
+        const jsonAlias: JsonAliasOptions =
+          cachedReflectGetMetadataKeyForTarget(metadataKey, target);
         if (jsonAlias.values != null) {
           for (const alias of jsonAlias.values) {
             classProperties.add(alias);
           }
         }
       }
-
     }
   }
 
   let parent = target;
   while (parent.name && parent !== Object) {
-    const propertyDescriptors = Object.getOwnPropertyDescriptors(parent.prototype);
+    const propertyDescriptors = Object.getOwnPropertyDescriptors(
+      parent.prototype
+    );
     // eslint-disable-next-line guard-for-in
     for (const property in propertyDescriptors) {
       const propertyDescriptor = propertyDescriptors[property];
@@ -354,18 +457,22 @@ export const getClassProperties = (target: Record<string, any>, obj: any = null,
   if (typeof map1 === 'undefined') {
     alreadyMappedClassProperties.set(target, []);
   }
-  return alreadyMappedClassProperties.get(target)[objDefinition] = [...classProperties];
+  return (alreadyMappedClassProperties.get(target)[objDefinition] = [
+    ...classProperties,
+  ]);
 };
 
-const isMetadataKeyFoundInContext = (metadataKey: any, property: string, contextGroupsWithDefault) => {
-
+const isMetadataKeyFoundInContext = (
+  metadataKey: any,
+  property: string,
+  contextGroupsWithDefault
+) => {
   const suffix = metadataKey.split(':').pop();
   for (const contextGroup of contextGroupsWithDefault) {
-    const metadataKeyWithContext = makeMetadataKeyWithContext(
-      property, {
-        contextGroup,
-        suffix
-      });
+    const metadataKeyWithContext = makeMetadataKeyWithContext(property, {
+      contextGroup,
+      suffix,
+    });
     if (metadataKeyWithContext === metadataKey) {
       return true;
     }
@@ -376,9 +483,13 @@ const isMetadataKeyFoundInContext = (metadataKey: any, property: string, context
 /**
  * @internal
  */
-export const classHasOwnProperty = (target: Record<string, any>, propertyKey: string, obj: any,
-                                    context: JsonStringifierParserCommonContext<any>,
-                                    options?: GetClassPropertiesOptions): boolean => {
+export const classHasOwnProperty = (
+  target: Record<string, any>,
+  propertyKey: string,
+  obj: any,
+  context: JsonStringifierParserCommonContext<any>,
+  options?: GetClassPropertiesOptions
+): boolean => {
   const classProperties = getClassProperties(target, obj, context, options);
   return classProperties.includes(propertyKey);
 };
@@ -394,151 +505,214 @@ export interface VirtualPropertiesToClassPropertiesMappingOptions {
 /**
  * @internal
  */
-export const mapVirtualPropertiesToClassProperties =
-  (target: Record<string, any>, keys: string[], context: JsonStringifierParserCommonContext<any>,
-   options: VirtualPropertiesToClassPropertiesMappingOptions): string[] =>
-    [...virtualPropertiesToClassPropertiesMapping(target, keys, context, options).values()];
-
-
-/**
- * @internal
- */
-export const virtualPropertiesToClassPropertiesMapping =
-  (target: Record<string, any>, keys: string[], context: JsonStringifierParserCommonContext<any>,
-   options: VirtualPropertiesToClassPropertiesMappingOptions): Set<string> => {
-    const returnedSet = new Set<string>();
-    for (const key of keys) {
-      internVirtualPropertyToClassPropertiesMapping(target, key, context, options).forEach((el) => returnedSet.add(el));
-    }
-    return returnedSet;
-  };
-
+export const mapVirtualPropertiesToClassProperties = (
+  target: Record<string, any>,
+  keys: string[],
+  context: JsonStringifierParserCommonContext<any>,
+  options: VirtualPropertiesToClassPropertiesMappingOptions
+): string[] => [
+  ...virtualPropertiesToClassPropertiesMapping(
+    target,
+    keys,
+    context,
+    options
+  ).values(),
+];
 
 /**
  * @internal
  */
-const alreadyMappedType: WeakMap<Record<string, any>, Map<string, Set<string>>> = new WeakMap();
+export const virtualPropertiesToClassPropertiesMapping = (
+  target: Record<string, any>,
+  keys: string[],
+  context: JsonStringifierParserCommonContext<any>,
+  options: VirtualPropertiesToClassPropertiesMappingOptions
+): Set<string> => {
+  const returnedSet = new Set<string>();
+  for (const key of keys) {
+    internVirtualPropertyToClassPropertiesMapping(
+      target,
+      key,
+      context,
+      options
+    ).forEach((el) => returnedSet.add(el));
+  }
+  return returnedSet;
+};
 
 /**
  * @internal
  */
-export const internVirtualPropertyToClassPropertiesMapping =
-  (target: Record<string, any>, key: string, context: JsonStringifierParserCommonContext<any>,
-   options: VirtualPropertiesToClassPropertiesMappingOptions): Set<string> => {
+const alreadyMappedType: WeakMap<
+  Record<string, any>,
+  Map<string, Set<string>>
+> = new WeakMap();
 
-    if (alreadyMappedType.get(target) !== undefined && alreadyMappedType.get(target).has(key)) {
-      return alreadyMappedType.get(target).get(key);
-    }
+/**
+ * @internal
+ */
+export const internVirtualPropertyToClassPropertiesMapping = (
+  target: Record<string, any>,
+  key: string,
+  context: JsonStringifierParserCommonContext<any>,
+  options: VirtualPropertiesToClassPropertiesMappingOptions
+): Set<string> => {
+  if (
+    alreadyMappedType.get(target) !== undefined &&
+    alreadyMappedType.get(target).has(key)
+  ) {
+    return alreadyMappedType.get(target).get(key);
+  }
 
-    const { checkGetters = false, checkSetters = false } = options;
+  const { checkGetters = false, checkSetters = false } = options;
 
-    const contextGroupsWithDefault = (context.withContextGroups || []).concat(DefaultContextGroup);
-    const metadataKeys = cachedReflectGetMetadataKeys(target);
-    const propertiesMapping: Set<string> = new Set();
+  const contextGroupsWithDefault = (context.withContextGroups || []).concat(
+    DefaultContextGroup
+  );
+  const metadataKeys = cachedReflectGetMetadataKeys(target);
+  const propertiesMapping: Set<string> = new Set();
 
-    let getterOrSetterFound = false;
-    for (const metadataKey of metadataKeys) {
-
-      if (metadataKey.startsWith('jackson:')) {
-        const suffixStartIndex = metadataKey.lastIndexOf(':JsonVirtualProperty:');
-        if ( suffixStartIndex !== -1) {
-          const suffix = metadataKey.substring(suffixStartIndex + 21);
-          const metadataKeyFoundInContext = contextGroupsWithDefault.some(contextGroup => {
-            const metadataKeyWithContext = makeMetadataKeyWithContext('JsonVirtualProperty', {
-              contextGroup,
-              suffix
-            });
+  let getterOrSetterFound = false;
+  for (const metadataKey of metadataKeys) {
+    if (metadataKey.startsWith('jackson:')) {
+      const suffixStartIndex = metadataKey.lastIndexOf(':JsonVirtualProperty:');
+      if (suffixStartIndex !== -1) {
+        const suffix = metadataKey.substring(suffixStartIndex + 21);
+        const metadataKeyFoundInContext = contextGroupsWithDefault.some(
+          (contextGroup) => {
+            const metadataKeyWithContext = makeMetadataKeyWithContext(
+              'JsonVirtualProperty',
+              {
+                contextGroup,
+                suffix,
+              }
+            );
             return metadataKeyWithContext === metadataKey;
-          });
-
-          if (!metadataKeyFoundInContext) {
-            continue;
           }
+        );
 
-          const jsonVirtualProperty: JsonPropertyOptions | JsonGetterOptions | JsonSetterOptions =
-            cachedReflectGetMetadataKeyForTarget(metadataKey, target);
+        if (!metadataKeyFoundInContext) {
+          continue;
+        }
 
-          if (jsonVirtualProperty && jsonVirtualProperty.value === key && jsonVirtualProperty._descriptor != null &&
-            typeof jsonVirtualProperty._descriptor.value === 'function') {
-            if ((checkGetters && jsonVirtualProperty._propertyKey.startsWith('get')) ||
-              (checkSetters && jsonVirtualProperty._propertyKey.startsWith('set'))) {
-              propertiesMapping.add(jsonVirtualProperty._propertyKey);
-              getterOrSetterFound = true;
-              break;
-            }
+        const jsonVirtualProperty:
+          | JsonPropertyOptions
+          | JsonGetterOptions
+          | JsonSetterOptions = cachedReflectGetMetadataKeyForTarget(
+          metadataKey,
+          target
+        );
+
+        if (
+          jsonVirtualProperty &&
+          jsonVirtualProperty.value === key &&
+          jsonVirtualProperty._descriptor != null &&
+          typeof jsonVirtualProperty._descriptor.value === 'function'
+        ) {
+          if (
+            (checkGetters &&
+              jsonVirtualProperty._propertyKey.startsWith('get')) ||
+            (checkSetters && jsonVirtualProperty._propertyKey.startsWith('set'))
+          ) {
+            propertiesMapping.add(jsonVirtualProperty._propertyKey);
+            getterOrSetterFound = true;
+            break;
           }
         }
       }
     }
-    if (!getterOrSetterFound) {
-      propertiesMapping.add(key);
-    }
+  }
+  if (!getterOrSetterFound) {
+    propertiesMapping.add(key);
+  }
 
-    if (alreadyMappedType.get(target) === undefined) {
-      alreadyMappedType.set(target, new Map<string, Set<string>>());
-    }
-    alreadyMappedType.get(target).set(key, propertiesMapping);
+  if (alreadyMappedType.get(target) === undefined) {
+    alreadyMappedType.set(target, new Map<string, Set<string>>());
+  }
+  alreadyMappedType.get(target).set(key, propertiesMapping);
 
-    return propertiesMapping;
-  };
-
-
-/**
- * @internal
- */
-export const mapVirtualPropertyToClassProperty =
-  (target: Record<string, any>, key: string, context: JsonStringifierParserCommonContext<any>,
-   options: VirtualPropertiesToClassPropertiesMappingOptions): string =>
-    internVirtualPropertyToClassPropertiesMapping(target, key, context, options).values().next().value;
+  return propertiesMapping;
+};
 
 /**
  * @internal
  */
-export const mapClassPropertiesToVirtualProperties =
-  (target: Record<string, any>, classProperties: string[], context: JsonStringifierParserCommonContext<any>): string[] =>
-    [...classPropertiesToVirtualPropertiesMapping(target, classProperties, context).values()];
+export const mapVirtualPropertyToClassProperty = (
+  target: Record<string, any>,
+  key: string,
+  context: JsonStringifierParserCommonContext<any>,
+  options: VirtualPropertiesToClassPropertiesMappingOptions
+): string =>
+  internVirtualPropertyToClassPropertiesMapping(target, key, context, options)
+    .values()
+    .next().value;
 
 /**
  * @internal
  */
-export const classPropertiesToVirtualPropertiesMapping =
-  (target: Record<string, any>, classProperties: string[], context: JsonStringifierParserCommonContext<any>): Map<string, string> => {
+export const mapClassPropertiesToVirtualProperties = (
+  target: Record<string, any>,
+  classProperties: string[],
+  context: JsonStringifierParserCommonContext<any>
+): string[] => [
+  ...classPropertiesToVirtualPropertiesMapping(
+    target,
+    classProperties,
+    context
+  ).values(),
+];
 
-    const contextGroupsWithDefault = [
-      ...(context.withContextGroups ? context.withContextGroups : []),
-      DefaultContextGroup
-    ];
-    const propertiesMapping: Map<string, string> = new Map();
+/**
+ * @internal
+ */
+export const classPropertiesToVirtualPropertiesMapping = (
+  target: Record<string, any>,
+  classProperties: string[],
+  context: JsonStringifierParserCommonContext<any>
+): Map<string, string> => {
+  const contextGroupsWithDefault = [
+    ...(context.withContextGroups ? context.withContextGroups : []),
+    DefaultContextGroup,
+  ];
+  const propertiesMapping: Map<string, string> = new Map();
 
-    for (const classProperty of classProperties) {
-      let jsonVirtualProperty: JsonPropertyOptions | JsonGetterOptions | JsonSetterOptions = null;
+  for (const classProperty of classProperties) {
+    let jsonVirtualProperty:
+      | JsonPropertyOptions
+      | JsonGetterOptions
+      | JsonSetterOptions = null;
 
-      for (const contextGroup of contextGroupsWithDefault) {
-        const metadataKeyWithContext = makeMetadataKeyWithContext('JsonVirtualProperty', {
+    for (const contextGroup of contextGroupsWithDefault) {
+      const metadataKeyWithContext = makeMetadataKeyWithContext(
+        'JsonVirtualProperty',
+        {
           contextGroup,
-          suffix: classProperty
-        });
-        jsonVirtualProperty = Reflect.getMetadata(metadataKeyWithContext, target);
-        if (jsonVirtualProperty != null) {
-          break;
+          suffix: classProperty,
         }
-      }
-
-      if (jsonVirtualProperty) {
-        propertiesMapping.set(classProperty, jsonVirtualProperty.value);
-      } else {
-        propertiesMapping.set(classProperty, classProperty);
+      );
+      jsonVirtualProperty = Reflect.getMetadata(metadataKeyWithContext, target);
+      if (jsonVirtualProperty != null) {
+        break;
       }
     }
-    return propertiesMapping;
-  };
+
+    if (jsonVirtualProperty) {
+      propertiesMapping.set(classProperty, jsonVirtualProperty.value);
+    } else {
+      propertiesMapping.set(classProperty, classProperty);
+    }
+  }
+  return propertiesMapping;
+};
 
 /**
  * @internal
  */
-export const mapClassPropertyToVirtualProperty =
-  (target: Record<string, any>, key: string, context: JsonStringifierParserCommonContext<any>): string =>
-    mapClassPropertiesToVirtualProperties(target, [key], context)[0];
+export const mapClassPropertyToVirtualProperty = (
+  target: Record<string, any>,
+  key: string,
+  context: JsonStringifierParserCommonContext<any>
+): string => mapClassPropertiesToVirtualProperties(target, [key], context)[0];
 
 /**
  * @internal
@@ -561,7 +735,7 @@ export const getArgumentNames = (method): string[] => {
   const ast = parseScript(code, {
     next: true,
     webcompat: true,
-    directives: true
+    directives: true,
   });
   const body = ast.body;
 
@@ -579,25 +753,38 @@ export const getArgumentNames = (method): string[] => {
     nodes = [body[0] as FunctionDeclaration];
   }
 
-  return nodes.reduce((args, exp) => {
-    if ((exp as FunctionDeclaration).params) {
-      return args.concat((exp as FunctionDeclaration).params);
-    }
-    if ('value' in exp && exp.value != null && ((exp as MethodDefinition).value).params) {
-      return args.concat((exp as MethodDefinition).value.params);
-    }
-    if ('expression' in exp && exp.expression != null && ((exp as ExpressionStatement).expression as FunctionExpression).params) {
-      return args.concat(((exp as ExpressionStatement).expression as FunctionExpression).params);
-    }
-    return args;
-  }, []).map(pluckParamName);
+  return nodes
+    .reduce((args, exp) => {
+      if ((exp as FunctionDeclaration).params) {
+        return args.concat((exp as FunctionDeclaration).params);
+      }
+      if (
+        'value' in exp &&
+        exp.value != null &&
+        (exp as MethodDefinition).value.params
+      ) {
+        return args.concat((exp as MethodDefinition).value.params);
+      }
+      if (
+        'expression' in exp &&
+        exp.expression != null &&
+        ((exp as ExpressionStatement).expression as FunctionExpression).params
+      ) {
+        return args.concat(
+          ((exp as ExpressionStatement).expression as FunctionExpression).params
+        );
+      }
+      return args;
+    }, [])
+    .map(pluckParamName);
 };
 
 /**
  * @internal
  */
 export const isSameConstructor = (ctorOrCtorName, ctor2): boolean =>
-  (typeof ctorOrCtorName === 'string' && ctorOrCtorName === ctor2.name) || ctorOrCtorName === ctor2;
+  (typeof ctorOrCtorName === 'string' && ctorOrCtorName === ctor2.name) ||
+  ctorOrCtorName === ctor2;
 
 /**
  * @internal
@@ -613,7 +800,9 @@ export const isExtensionOf = (ctor, ctorExtensionOf): boolean => {
       parent = Object.getPrototypeOf(parent);
     }
   } else {
-    return ctor !== ctorExtensionOf && ctorExtensionOf.prototype instanceof ctor;
+    return (
+      ctor !== ctorExtensionOf && ctorExtensionOf.prototype instanceof ctor
+    );
   }
   return false;
 };
@@ -621,14 +810,23 @@ export const isExtensionOf = (ctor, ctorExtensionOf): boolean => {
 /**
  * @internal
  */
-export const isSameConstructorOrExtensionOf = (ctorOrCtorName, ctor2): boolean =>
-  (isSameConstructor(ctorOrCtorName, ctor2) || isExtensionOf(ctorOrCtorName, ctor2));
+export const isSameConstructorOrExtensionOf = (
+  ctorOrCtorName,
+  ctor2
+): boolean =>
+  isSameConstructor(ctorOrCtorName, ctor2) ||
+  isExtensionOf(ctorOrCtorName, ctor2);
 
 /**
  * @internal
  */
-export const isSameConstructorOrExtensionOfNoObject = (ctorOrCtorName, ctor2): boolean =>
-  ctorOrCtorName !== Object && (isSameConstructor(ctorOrCtorName, ctor2) || isExtensionOf(ctorOrCtorName, ctor2));
+export const isSameConstructorOrExtensionOfNoObject = (
+  ctorOrCtorName,
+  ctor2
+): boolean =>
+  ctorOrCtorName !== Object &&
+  (isSameConstructor(ctorOrCtorName, ctor2) ||
+    isExtensionOf(ctorOrCtorName, ctor2));
 
 /**
  * @internal
@@ -641,55 +839,55 @@ export const hasIterationProtocol = (variable): boolean =>
  */
 export const isIterableNoMapNoString = (variable): boolean =>
   typeof variable !== 'string' &&
-  !(isSameConstructorOrExtensionOfNoObject(variable.constructor, Map)) &&
+  !isSameConstructorOrExtensionOfNoObject(variable.constructor, Map) &&
   hasIterationProtocol(variable);
 
 /**
  * @internal
  */
 export const isIterableNoString = (variable): boolean =>
-  typeof variable !== 'string' &&
-  hasIterationProtocol(variable);
+  typeof variable !== 'string' && hasIterationProtocol(variable);
 
 /**
  * @internal
  */
 export const isClassIterableNoMap = (ctor: ClassType<any>): boolean =>
-  !(isSameConstructorOrExtensionOfNoObject(ctor, Map)) &&
+  !isSameConstructorOrExtensionOfNoObject(ctor, Map) &&
   hasIterationProtocol(ctor.prototype);
 
 /**
  * @internal
  */
 export const isClassIterableNoMapNoString = (ctor: ClassType<any>): boolean =>
-  !(isSameConstructorOrExtensionOfNoObject(ctor, String)) &&
-  !(isSameConstructorOrExtensionOfNoObject(ctor, Map)) &&
+  !isSameConstructorOrExtensionOfNoObject(ctor, String) &&
+  !isSameConstructorOrExtensionOfNoObject(ctor, Map) &&
   hasIterationProtocol(ctor.prototype);
 
 /**
  * @internal
  */
-export const isClassIterable = (ctor: ClassType<any>): boolean => hasIterationProtocol(ctor.prototype);
+export const isClassIterable = (ctor: ClassType<any>): boolean =>
+  hasIterationProtocol(ctor.prototype);
 
 /**
  * https://stackoverflow.com/a/1482209/4637638
  * @internal
  */
 export const isObjLiteral = (_obj: any): boolean => {
-  let _test  = _obj;
-  return ( typeof _obj !== 'object' || _obj === null ?
-    false :
-    (
-      (() => {
+  let _test = _obj;
+  return typeof _obj !== 'object' || _obj === null
+    ? false
+    : (() => {
         while (true) {
-          if (  Object.getPrototypeOf( _test = Object.getPrototypeOf(_test)  ) === null) {
+          if (
+            Object.getPrototypeOf((_test = Object.getPrototypeOf(_test))) ===
+            null
+          ) {
             break;
           }
         }
         return Object.getPrototypeOf(_obj) === _test;
-      })()
-    )
-  );
+      })();
 };
 
 /**
@@ -708,48 +906,77 @@ export const isFloat = (n: number) => Number(n) === n && n % 1 !== 0;
  * find metadata considering also _internalDecorators
  * @internal
  */
-export const findMetadataByMetadataKeyWithContext = <T extends JsonDecoratorOptions>(
+// export const findMetadataByMetadataKeyWithContext = <T extends JsonDecoratorOptions>(
+//   metadataKeyWithContext: string,
+//   target: Record<string, any>,
+//   propertyKey: string | symbol = null,
+//   context: JsonStringifierParserCommonContext<any>): T => {
+
+//   let jsonDecoratorOptions: JsonDecoratorOptions = (propertyKey) ?
+//     Reflect.getMetadata(metadataKeyWithContext, target, propertyKey) :
+//     Reflect.getMetadata(metadataKeyWithContext, target);
+
+//   // search also on its prototype chain
+//   let parent = target;
+//   while (jsonDecoratorOptions == null && parent.name) {
+//     if (jsonDecoratorOptions == null && propertyKey == null && context != null && context._internalDecorators != null) {
+//       const map = context._internalDecorators.get(parent as ObjectConstructor);
+//       if (map != null && metadataKeyWithContext in map) {
+//         jsonDecoratorOptions = map[metadataKeyWithContext] as JsonDecoratorOptions;
+//       }
+//     }
+//     // get parent class
+//     parent = Object.getPrototypeOf(parent);
+//   }
+
+//   return jsonDecoratorOptions as T;
+// };
+
+export const findMetadataByMetadataKeyWithContext = <
+  T extends JsonDecoratorOptions
+>(
   metadataKeyWithContext: string,
   target: Record<string, any>,
   propertyKey: string | symbol = null,
-  context: JsonStringifierParserCommonContext<any>): T => {
-
-  let jsonDecoratorOptions: JsonDecoratorOptions = (propertyKey) ?
-    Reflect.getMetadata(metadataKeyWithContext, target, propertyKey) :
-    Reflect.getMetadata(metadataKeyWithContext, target);
-
-  // search also on its prototype chain
-  let parent = target;
-  while (jsonDecoratorOptions == null && parent.name) {
-    if (jsonDecoratorOptions == null && propertyKey == null && context != null && context._internalDecorators != null) {
-      const map = context._internalDecorators.get(parent as ObjectConstructor);
-      if (map != null && metadataKeyWithContext in map) {
-        jsonDecoratorOptions = map[metadataKeyWithContext] as JsonDecoratorOptions;
-      }
-    }
-    // get parent class
-    parent = Object.getPrototypeOf(parent);
+  context: JsonStringifierParserCommonContext<any>
+): T => {
+  if (propertyKey == null) {
+    return find_metadata_by_metadata_key_with_context(
+      metadataKeyWithContext,
+      target,
+      null,
+      context
+    );
+  } else {
+    return find_metadata_by_metadata_key_with_context(
+      metadataKeyWithContext,
+      target,
+      propertyKey.toString(),
+      context
+    );
   }
-
-  return jsonDecoratorOptions as T;
 };
 
 /**
  * @internal
  */
-export const findMetadata = <T extends JsonDecoratorOptions>(metadataKey: string,
+export const findMetadata = <T extends JsonDecoratorOptions>(
+  metadataKey: string,
   target: Record<string, any>,
   propertyKey: string | symbol = null,
-  context: JsonStringifierParserCommonContext<any>): T => {
+  context: JsonStringifierParserCommonContext<any>
+): T => {
   let jsonDecoratorOptions: JsonDecoratorOptions = null;
 
   const contextGroupsWithDefault = [
     ...(context.withContextGroups ? context.withContextGroups : []),
-    DefaultContextGroup
+    DefaultContextGroup,
   ];
 
   for (const contextGroup of contextGroupsWithDefault) {
-    const metadataKeyWithContext = makeMetadataKeyWithContext(metadataKey, {contextGroup});
+    const metadataKeyWithContext = makeMetadataKeyWithContext(metadataKey, {
+      contextGroup,
+    });
 
     jsonDecoratorOptions = findMetadataByMetadataKeyWithContext(
       metadataKeyWithContext,
@@ -769,25 +996,40 @@ export const findMetadata = <T extends JsonDecoratorOptions>(metadataKey: string
 /**
  * @internal
  */
-export const getMetadata = <T extends JsonDecoratorOptions>(metadataKey: string,
+export const getMetadata = <T extends JsonDecoratorOptions>(
+  metadataKey: string,
   target: Record<string, any>,
   propertyKey: string | symbol = null,
-  context: JsonStringifierParserCommonContext<any>): T => {
-  const jsonDecoratorOptions: JsonDecoratorOptions = metadataKey.startsWith('jackson:') ?
-    findMetadataByMetadataKeyWithContext(metadataKey, target, propertyKey, context) :
-    findMetadata(metadataKey, target, propertyKey, context) ;
+  context: JsonStringifierParserCommonContext<any>
+): T => {
+  const jsonDecoratorOptions: JsonDecoratorOptions = metadataKey.startsWith(
+    'jackson:'
+  )
+    ? findMetadataByMetadataKeyWithContext(
+        metadataKey,
+        target,
+        propertyKey,
+        context
+      )
+    : findMetadata(metadataKey, target, propertyKey, context);
 
   if (jsonDecoratorOptions && context && context.decoratorsEnabled) {
     const decoratorKeys = Object.keys(context.decoratorsEnabled);
     const decoratorKey = decoratorKeys.find((key) =>
-      (metadataKey.startsWith('jackson:')) ?
-        metadataKey.includes(':' + key) :
-        metadataKey.startsWith(key));
-    if (decoratorKey && typeof context.decoratorsEnabled[decoratorKey] === 'boolean') {
+      metadataKey.startsWith('jackson:')
+        ? metadataKey.includes(':' + key)
+        : metadataKey.startsWith(key)
+    );
+    if (
+      decoratorKey &&
+      typeof context.decoratorsEnabled[decoratorKey] === 'boolean'
+    ) {
       jsonDecoratorOptions.enabled = context.decoratorsEnabled[decoratorKey];
     }
   }
-  return jsonDecoratorOptions && jsonDecoratorOptions.enabled ? jsonDecoratorOptions as T : undefined;
+  return jsonDecoratorOptions && jsonDecoratorOptions.enabled
+    ? (jsonDecoratorOptions as T)
+    : undefined;
 };
 
 const findMetadataKeysCache = new Map<Record<string, any>, any[]>();
@@ -796,9 +1038,10 @@ const findMetadataKeysCache = new Map<Record<string, any>, any[]>();
  * find all metadataKeys considering also _internalDecorators
  * @internal
  */
-export const findMetadataKeys = <T extends JsonDecoratorOptions>(target: Record<string, any>,
-  context: JsonStringifierParserCommonContext<any>): any[] => {
-
+export const findMetadataKeys = <T extends JsonDecoratorOptions>(
+  target: Record<string, any>,
+  context: JsonStringifierParserCommonContext<any>
+): any[] => {
   if (findMetadataKeysCache.has(target)) {
     return findMetadataKeysCache.get(target);
   }
@@ -806,14 +1049,16 @@ export const findMetadataKeys = <T extends JsonDecoratorOptions>(target: Record<
   const metadataKeys = new Set(cachedReflectGetMetadataKeys(target));
   const contextGroupsWithDefault = [
     ...(context.withContextGroups ? context.withContextGroups : []),
-    DefaultContextGroup
+    DefaultContextGroup,
   ];
 
   if (context != null && context._internalDecorators != null) {
     // search also on its prototype chain
     let parent = target;
     while (parent.name) {
-      const internalDecorators = context._internalDecorators.get(parent as ObjectConstructor);
+      const internalDecorators = context._internalDecorators.get(
+        parent as ObjectConstructor
+      );
       for (const key in internalDecorators) {
         if (key === 'depth') {
           continue;
@@ -844,18 +1089,24 @@ export const findMetadataKeys = <T extends JsonDecoratorOptions>(target: Record<
 /**
  * @internal
  */
-export const getMetadataKeys = <T extends JsonDecoratorOptions>(target: Record<string, any>,
-  context: JsonStringifierParserCommonContext<any>): any[] => {
+export const getMetadataKeys = <T extends JsonDecoratorOptions>(
+  target: Record<string, any>,
+  context: JsonStringifierParserCommonContext<any>
+): any[] => {
   let metadataKeys = findMetadataKeys(target, context);
 
   if (context != null && context.decoratorsEnabled != null) {
     const decoratorKeys = Object.keys(context.decoratorsEnabled);
     metadataKeys = metadataKeys.filter((metadataKey) => {
       const decoratorKey = decoratorKeys.find((key) =>
-        (metadataKey.startsWith('jackson:')) ?
-          metadataKey.replace('jackson:', '').includes(':' + key) :
-          metadataKey.startsWith(key));
-      return context.decoratorsEnabled[decoratorKey] == null || context.decoratorsEnabled[decoratorKey];
+        metadataKey.startsWith('jackson:')
+          ? metadataKey.replace('jackson:', '').includes(':' + key)
+          : metadataKey.startsWith(key)
+      );
+      return (
+        context.decoratorsEnabled[decoratorKey] == null ||
+        context.decoratorsEnabled[decoratorKey]
+      );
     });
   }
   return metadataKeys;
@@ -864,41 +1115,54 @@ export const getMetadataKeys = <T extends JsonDecoratorOptions>(target: Record<s
 /**
  * @internal
  */
-export const hasMetadata = <T extends JsonDecoratorOptions>(metadataKey: string,
+export const hasMetadata = <T extends JsonDecoratorOptions>(
+  metadataKey: string,
   target: Record<string, any>,
   propertyKey: string | symbol = null,
-  context: JsonStringifierParserCommonContext<any>): boolean => {
-  const option: JsonDecoratorOptions = getMetadata<T>(metadataKey, target, propertyKey, context);
+  context: JsonStringifierParserCommonContext<any>
+): boolean => {
+  const option: JsonDecoratorOptions = getMetadata<T>(
+    metadataKey,
+    target,
+    propertyKey,
+    context
+  );
   return option != null;
 };
 
 /**
  * @internal
  */
-export const isVariablePrimitiveType = (value: any): boolean => value != null && isConstructorPrimitiveType(value.constructor);
+export const isVariablePrimitiveType = (value: any): boolean =>
+  value != null && isConstructorPrimitiveType(value.constructor);
 
 /**
  * @internal
  */
-export const isConstructorPrimitiveType = (ctor: any): boolean => ctor === Number ||
-  (hasBigInt && ctor === BigInt) || ctor === String ||
-  ctor === Boolean || (Symbol && ctor === Symbol);
+export const isConstructorPrimitiveType = (ctor: any): boolean =>
+  ctor === Number ||
+  (hasBigInt && ctor === BigInt) ||
+  ctor === String ||
+  ctor === Boolean ||
+  (Symbol && ctor === Symbol);
 
 /**
  * @internal
  */
-export const getDefaultPrimitiveTypeValue = (ctor: ClassType<any>): any | null => {
+export const getDefaultPrimitiveTypeValue = (
+  ctor: ClassType<any>
+): any | null => {
   switch (ctor) {
-  case Number:
-    return 0;
-  case Boolean:
-    return false;
-  case String:
-    return '';
-  default:
-    if (hasBigInt && ctor === BigInt) {
-      return BigInt(0);
-    }
+    case Number:
+      return 0;
+    case Boolean:
+      return false;
+    case String:
+      return '';
+    default:
+      if (hasBigInt && ctor === BigInt) {
+        return BigInt(0);
+      }
   }
   return null;
 };
@@ -916,10 +1180,12 @@ export const getDefaultValue = (value: any): any | null => {
 /**
  * @internal
  */
-export const isValueEmpty = (value: any): boolean => value == null ||
-  ( (value instanceof Set || value instanceof Map) && value.size === 0 ) ||
-  ( !(value instanceof Set || value instanceof Map) &&
-    (typeof value === 'object' || typeof value === 'string') && Object.keys(value).length === 0 );
+export const isValueEmpty = (value: any): boolean =>
+  value == null ||
+  ((value instanceof Set || value instanceof Map) && value.size === 0) ||
+  (!(value instanceof Set || value instanceof Map) &&
+    (typeof value === 'object' || typeof value === 'string') &&
+    Object.keys(value).length === 0);
 
 /**
  * @internal
@@ -937,19 +1203,29 @@ export const getDeepestClass = (array: Array<any>): any | null => {
 /**
  * @internal
  */
-export const getObjectKeysWithPropertyDescriptorNames = (obj: any, ctor: any,
-                                                         context: JsonStringifierParserCommonContext<any>,
-                                                         options?: GetClassPropertiesOptions): string[] => {
+export const getObjectKeysWithPropertyDescriptorNames = (
+  obj: any,
+  ctor: any,
+  context: JsonStringifierParserCommonContext<any>,
+  options?: GetClassPropertiesOptions
+): string[] => {
   if (obj == null) {
     return [];
   }
   const keys = Object.keys(obj);
-  const classProperties = getClassProperties(ctor != null ? ctor : obj.constructor, null, context, options);
+  const classProperties = getClassProperties(
+    ctor != null ? ctor : obj.constructor,
+    null,
+    context,
+    options
+  );
 
-  if (keys.includes('constructor') &&
+  if (
+    keys.includes('constructor') &&
     typeof obj.constructor === 'function' &&
     !isNativeCode(obj.constructor) &&
-    isNativeCode(obj.constructor.constructor)) {
+    isNativeCode(obj.constructor.constructor)
+  ) {
     keys.splice(keys.indexOf('constructor'), 1);
   }
 
@@ -959,14 +1235,23 @@ export const getObjectKeysWithPropertyDescriptorNames = (obj: any, ctor: any,
 /**
  * @internal
  */
-export const objectHasOwnPropertyWithPropertyDescriptorNames =
-  (obj: any, ctor: any, key: string, context: JsonStringifierParserCommonContext<any>,
-   options?: GetClassPropertiesOptions): boolean => {
-    if (obj == null || key == null) {
-      return false;
-    }
-    return getObjectKeysWithPropertyDescriptorNames(obj, ctor, context, options).includes(key);
-  };
+export const objectHasOwnPropertyWithPropertyDescriptorNames = (
+  obj: any,
+  ctor: any,
+  key: string,
+  context: JsonStringifierParserCommonContext<any>,
+  options?: GetClassPropertiesOptions
+): boolean => {
+  if (obj == null || key == null) {
+    return false;
+  }
+  return getObjectKeysWithPropertyDescriptorNames(
+    obj,
+    ctor,
+    context,
+    options
+  ).includes(key);
+};
 
 /**
  * @internal
@@ -975,22 +1260,31 @@ export const castObjLiteral = (target: any, value: any): any => {
   if (isObjLiteral(value) && target !== Object) {
     let parent = target;
     while (parent.name && parent !== Object) {
-      const propertyDescriptors = Object.getOwnPropertyDescriptors(parent.prototype);
+      const propertyDescriptors = Object.getOwnPropertyDescriptors(
+        parent.prototype
+      );
       // eslint-disable-next-line guard-for-in
       for (const property in propertyDescriptors) {
         if (!Object.hasOwnProperty.call(value, property)) {
-
-          const jsonPropertyMetadataKey = Reflect.getMetadataKeys(target, property)
-            .find((metadataKey: string) => metadataKey.endsWith(':JsonProperty'));
+          const jsonPropertyMetadataKey = Reflect.getMetadataKeys(
+            target,
+            property
+          ).find((metadataKey: string) =>
+            metadataKey.endsWith(':JsonProperty')
+          );
           if (jsonPropertyMetadataKey != null) {
-            const jsonPropertyOptions: JsonPropertyOptions = Reflect.getMetadata(jsonPropertyMetadataKey, target, property);
-            if (jsonPropertyOptions && jsonPropertyOptions._descriptor == null) {
+            const jsonPropertyOptions: JsonPropertyOptions =
+              Reflect.getMetadata(jsonPropertyMetadataKey, target, property);
+            if (
+              jsonPropertyOptions &&
+              jsonPropertyOptions._descriptor == null
+            ) {
               continue;
             }
           }
 
           const ownPropertyDescriptor = {
-            ...propertyDescriptors[property]
+            ...propertyDescriptors[property],
           };
           ownPropertyDescriptor.enumerable = false;
           Object.defineProperty(value, property, ownPropertyDescriptor);
@@ -1008,10 +1302,10 @@ export const castObjLiteral = (target: any, value: any): any => {
  * @param mappers
  * @internal
  */
-export const sortMappersByOrder = <T>(mappers: CustomMapper<T>[]): CustomMapper<T>[] =>
-  mappers.sort((a, b) => a.order - b.order > 0 ? 1 : -1);
-
-
+export const sortMappersByOrder = <T>(
+  mappers: CustomMapper<T>[]
+): CustomMapper<T>[] =>
+  mappers.sort((a, b) => (a.order - b.order > 0 ? 1 : -1));
 
 // Cache call of Reflect.getMetadataKeys
 const reflectGetMetadataKeysCache = new Map<Record<string, any>, any[]>();
@@ -1023,17 +1317,24 @@ const cachedReflectGetMetadataKeys = (target: Record<string, any>): any[] => {
   if (reflectGetMetadataKeysCache.has(target)) {
     return reflectGetMetadataKeysCache.get(target);
   }
-  return reflectGetMetadataKeysCache.set(target, Reflect.getMetadataKeys(target)).get(target);
+  return reflectGetMetadataKeysCache
+    .set(target, Reflect.getMetadataKeys(target))
+    .get(target);
 };
 
-
 // Cache call of Reflect.getMetadataKeys
-const reflectGetMetadataKeyForTargetCache = new Map<Record<string, any>, Map<any, any>>();
+const reflectGetMetadataKeyForTargetCache = new Map<
+  Record<string, any>,
+  Map<any, any>
+>();
 
 /**
  * @internal
  */
-const cachedReflectGetMetadataKeyForTarget = (metadataKey: any, target: Record<string, any>): any => {
+const cachedReflectGetMetadataKeyForTarget = (
+  metadataKey: any,
+  target: Record<string, any>
+): any => {
   let map1 = reflectGetMetadataKeyForTargetCache.get(target);
   if (map1 !== undefined) {
     if (map1.has(metadataKey)) {
@@ -1042,6 +1343,7 @@ const cachedReflectGetMetadataKeyForTarget = (metadataKey: any, target: Record<s
   } else {
     map1 = reflectGetMetadataKeyForTargetCache.set(target, new Map());
   }
-  return map1.set(metadataKey, Reflect.getMetadata(metadataKey, target))
+  return map1
+    .set(metadataKey, Reflect.getMetadata(metadataKey, target))
     .get(metadataKey);
 };
