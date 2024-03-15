@@ -1,4 +1,4 @@
-# jackson-js
+# jackson-js <!-- omit in toc -->
 
 [![npm downloads](https://img.shields.io/npm/dm/@badetitou/jackson-js.svg)](https://www.npmjs.com/package/@badetitou/jackson-js)
 [![jackson-js version](https://img.shields.io/npm/v/@badetitou/jackson-js.svg)](https://www.npmjs.com/package/@badetitou/jackson-js)
@@ -9,6 +9,21 @@
 As the name implies, `jackson-js` is heavily inspired by the famous Java [FasterXML/jackson library](https://github.com/FasterXML/jackson).
 
 It can be used on both **client** (browser) and **server** (Node.js) side.
+
+- [jackson-js](#jackson-js)
+  - [First of all](#first-of-all)
+  - [Why this library? What's the difference between using this library instead of `JSON.parse` and `JSON.stringify`?](#why-this-library-whats-the-difference-between-using-this-library-instead-of-jsonparse-and-jsonstringify)
+  - [Installation](#installation)
+  - [API](#api)
+    - [ObjectMapper](#objectmapper)
+    - [JsonParser](#jsonparser)
+    - [JsonStringifier](#jsonstringifier)
+    - [Decorators](#decorators)
+  - [Important note](#important-note)
+  - [Tutorials](#tutorials)
+  - [Examples](#examples)
+- [Developers](#developers)
+
 
 ## First of all
 
@@ -150,3 +165,8 @@ class Writer {
 ## Examples
 
 Code examples can be found inside the `tests` folder and in [this example repository](https://github.com/pichillilorenzo/jackson-js-examples). The example repository gives a simple example using the `jackson-js` library with Angular 9 for the client side and two examples for the server side: one using Node.js + Express + SQLite3 (with Sequelize 5) and another one using Node.js + LoopBack 4.
+
+# Developers
+
+Rust code is under jackson-wasm.
+This is a try to see if we can have better performance
