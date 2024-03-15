@@ -13,9 +13,6 @@ const defaultConfig = {
             options: {
               configFile: path.resolve(__dirname, 'tsconfig.prod.json'),
             }
-          },
-          {
-            loader: 'eslint-loader'
           }
         ]
       }
@@ -26,7 +23,7 @@ const defaultConfig = {
   },
   devtool: 'source-map',
   mode: 'production',
-  plugins: []
+  plugins: [new ESLintPlugin(options)]
 };
 
 const serverConfig = {
