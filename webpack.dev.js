@@ -1,4 +1,4 @@
-import ESLintPlugin from 'eslint-webpack-plugin'
+const ESLintPlugin = require('eslint-webpack-plugin');
 const webpack = require('webpack');
 const path = require('path');
 
@@ -25,7 +25,7 @@ const defaultConfig = {
   },
   devtool: 'inline-source-map',
   mode: 'development',
-  plugins: [new ESLintPlugin(options)]
+  plugins: [new ESLintPlugin({})]
 };
 
 const testConfig = {
@@ -52,7 +52,7 @@ const testConfig = {
   },
   devtool: 'inline-source-map',
   mode: 'development',
-  plugins: [new ESLintPlugin(options)],
+  plugins: [new ESLintPlugin({})],
   target: 'node',
   output: {
     path: path.resolve(__dirname, 'dist'),

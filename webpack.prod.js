@@ -1,3 +1,4 @@
+const ESLintPlugin = require('eslint-webpack-plugin');
 const webpack = require('webpack');
 const path = require('path');
 
@@ -23,7 +24,7 @@ const defaultConfig = {
   },
   devtool: 'source-map',
   mode: 'production',
-  plugins: [new ESLintPlugin(options)]
+  plugins: [new ESLintPlugin({})]
 };
 
 const serverConfig = {
