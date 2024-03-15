@@ -40,9 +40,10 @@
     "build:rs:prod": "cd jackson-wasm && wasm-pack build",
     "build:rs:node": "cd jackson-wasm && wasm-pack build --target nodejs",
     "start:node:dev": "node dist/lib.node",
-    "test-es6": "npm run build:rs:node && TZ=UTC TS_NODE_PROJECT=tsconfig.json ava --concurrency=8 --timeout=3m --verbose",
+    "test-es6": "npm run build:rs:node && TZ=UTC TS_NODE_PROJECT=tsconfig.json ava --concurrency=8 --timeout=3m --verbose --match='!perf:*'",
     "test": "nyc --no-clean npm run test-es6",
-    "test:win:test-es6": "npm run build:rs:node && ava --concurrency=1 --timeout=3m --verbose",
+    "test:win:test-es6": "npm run build:rs:node && ava --concurrency=1 --timeout=3m --verbose --match='!perf:*'",
+    "test:win:perf-test": "npm run build:rs:node && ava --concurrency=1 --timeout=3m --verbose --match='perf:*'",
     "test:win": "nyc --no-clean npm run test:win:test-es6",
     "coverage": "nyc report --reporter=text-lcov > coverage/lcov.info"
   },
