@@ -171,7 +171,7 @@ export const isFunction = (funcOrClass: any): boolean => {
 /**
  * @internal
  */
-export const makeDecorator = <T>(
+export const makeDecorator = (
   options: (...args: any[]) => JsonDecoratorOptions,
   decorator: JsonDecorator
 ): any => {
@@ -209,11 +209,11 @@ export const makeDecorator = <T>(
 /**
  * @internal
  */
-export const makeJacksonDecorator = <T>(
+export const makeJacksonDecorator = (
   options: (...args: any[]) => JsonDecoratorOptions,
   decorator: JsonDecorator
 ): any =>
-  makeDecorator<T>(
+  makeDecorator(
     options,
     (o: JsonDecoratorOptions, target, propertyKey, descriptorOrParamIndex) => {
       if (propertyKey != null) {
@@ -271,6 +271,7 @@ const nativeCodeRegex = /{\s*\[native code]\s*}$/;
  * @param value
  * @internal
  */
+// eslint-disable-next-line @typescript-eslint/ban-types
 export const isNativeCode = (value: Function | string): boolean =>
   !!nativeCodeRegex.exec(value.toString());
 
@@ -985,7 +986,7 @@ const findMetadataKeysCache = new Map<Record<string, any>, any[]>();
  * find all metadataKeys considering also _internalDecorators
  * @internal
  */
-export const findMetadataKeys = <T extends JsonDecoratorOptions>(
+export const findMetadataKeys = (
   target: Record<string, any>,
   context: JsonStringifierParserCommonContext<any>
 ): any[] => {
@@ -1036,7 +1037,7 @@ export const findMetadataKeys = <T extends JsonDecoratorOptions>(
 /**
  * @internal
  */
-export const getMetadataKeys = <T extends JsonDecoratorOptions>(
+export const getMetadataKeys = (
   target: Record<string, any>,
   context: JsonStringifierParserCommonContext<any>
 ): any[] => {
