@@ -4,7 +4,7 @@
     "es2021": true,
     "node": true
   },
-  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "extends": ["plugin:@typescript-eslint/recommended"],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaVersion": "latest",
@@ -86,9 +86,7 @@
     "eqeqeq": ["error", "smart"],
     "guard-for-in": "error",
     "id-match": "error",
-    "import/no-deprecated": "warn",
     "import/order": "off",
-    "jsdoc/no-types": "error",
     "max-classes-per-file": "off",
     "max-len": [
       "error",
@@ -155,7 +153,6 @@
     "no-var": "error",
     "object-shorthand": "error",
     "one-var": ["error", "never"],
-    "prefer-arrow/prefer-arrow-functions": "error",
     "prefer-const": "error",
     "quote-props": ["error", "as-needed"],
     "radix": "error",
@@ -169,33 +166,5 @@
     ],
     "spaced-comment": "error",
     "use-isnan": "error",
-    "valid-typeof": "off",
-    "@typescript-eslint/tslint/config": [
-      "error",
-      {
-        "rules": {
-          "import-spacing": true,
-          "jsdoc-format": true,
-          "no-reference-import": true,
-          "one-line": [
-            true,
-            "check-catch",
-            "check-else",
-            "check-finally",
-            "check-open-brace",
-            "check-whitespace"
-          ],
-          "whitespace": [
-            true,
-            "check-branch",
-            "check-decl",
-            "check-operator",
-            "check-separator",
-            "check-type",
-            "check-typecast"
-          ]
-        }
-      }
-    ]
-  }
+    "valid-typeof": "off"
 }

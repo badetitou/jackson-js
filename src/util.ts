@@ -49,6 +49,7 @@ export const makeMetadataKeyWithContext = (
   if (options.contextGroup != null && !regExp.test(options.contextGroup)) {
     // eslint-disable-next-line max-len
     throw new JacksonError(
+      // eslint-disable-next-line max-len
       `Invalid context group name "${options.contextGroup}" found! The context group name must match "/^[\\w]+$/" regular expression, that is a non-empty string which contains any alphanumeric character including the underscore.`
     );
   }
@@ -904,67 +905,12 @@ export const isInt = (n: number) => Number(n) === n && n % 1 === 0;
 export const isFloat = (n: number) => Number(n) === n && n % 1 !== 0;
 
 /**
- * find metadata considering also _internalDecorators
- * @internal
- */
-// export const findMetadataByMetadataKeyWithContext = <T extends JsonDecoratorOptions>(
-//   metadataKeyWithContext: string,
-// target: Record<string, any>,
-//   propertyKey: string | symbol = null,
-//   context: JsonStringifierParserCommonContext<any>): T => {
-
-//   let jsonDecoratorOptions: JsonDecoratorOptions = (propertyKey) ?
-//     Reflect.getMetadata(metadataKeyWithContext, target, propertyKey) :
-//     Reflect.getMetadata(metadataKeyWithContext, target);
-
-//   // search also on its prototype chain
-//   let parent = target;
-//   while (jsonDecoratorOptions == null && parent.name) {
-//     if (jsonDecoratorOptions == null && propertyKey == null && context != null && context._internalDecorators != null) {
-//       const map = context._internalDecorators.get(parent as ObjectConstructor);
-//       if (map != null && metadataKeyWithContext in map) {
-//         jsonDecoratorOptions = map[metadataKeyWithContext] as JsonDecoratorOptions;
-//       }
-//     }
-//     // get parent class
-//     parent = Object.getPrototypeOf(parent);
-//   }
-
-//   return jsonDecoratorOptions as T;
-// };
-
-export const findMetadataByMetadataKeyWithContext = <
-  T extends JsonDecoratorOptions
->(
-  metadataKeyWithContext: string,
-  target: Record<string, any>,
-  propertyKey: string | symbol = null,
-  context: JsonStringifierParserCommonContext<any>
-): T => {
-  if (propertyKey == null) {
-    return find_metadata_by_metadata_key_with_context(
-      metadataKeyWithContext,
-      target,
-      null,
-      context
-    );
-  } else {
-    return find_metadata_by_metadata_key_with_context(
-      metadataKeyWithContext,
-      target,
-      propertyKey.toString(),
-      context
-    );
-  }
-};
-
-/**
  * @internal
  */
 export const findMetadata = <T extends JsonDecoratorOptions>(
   metadataKey: string,
   target: Record<string, any>,
-  propertyKey: string | symbol = null,
+  propertyKey: string = null,
   context: JsonStringifierParserCommonContext<any>
 ): T => {
   let jsonDecoratorOptions: JsonDecoratorOptions = null;
@@ -979,7 +925,7 @@ export const findMetadata = <T extends JsonDecoratorOptions>(
       contextGroup,
     });
 
-    jsonDecoratorOptions = findMetadataByMetadataKeyWithContext(
+    jsonDecoratorOptions = find_metadata_by_metadata_key_with_context(
       metadataKeyWithContext,
       target,
       propertyKey,
@@ -1000,13 +946,13 @@ export const findMetadata = <T extends JsonDecoratorOptions>(
 export const getMetadata = <T extends JsonDecoratorOptions>(
   metadataKey: string,
   target: Record<string, any>,
-  propertyKey: string | symbol = null,
+  propertyKey: string = null,
   context: JsonStringifierParserCommonContext<any>
 ): T => {
   const jsonDecoratorOptions: JsonDecoratorOptions = metadataKey.startsWith(
     'jackson:'
   )
-    ? findMetadataByMetadataKeyWithContext(
+    ? find_metadata_by_metadata_key_with_context(
       metadataKey,
       target,
       propertyKey,
@@ -1119,7 +1065,7 @@ export const getMetadataKeys = <T extends JsonDecoratorOptions>(
 export const hasMetadata = <T extends JsonDecoratorOptions>(
   metadataKey: string,
   target: Record<string, any>,
-  propertyKey: string | symbol = null,
+  propertyKey: string = null,
   context: JsonStringifierParserCommonContext<any>
 ): boolean => {
   const option: JsonDecoratorOptions = getMetadata<T>(
