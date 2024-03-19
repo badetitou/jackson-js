@@ -27,6 +27,12 @@ mod Reflect {
             property_key: &str,
         ) -> Option<crate::util::JsonDecoratorOptions>;
 
+        #[wasm_bindgen(js_namespace = Reflect, js_name = getMetadata)]
+        pub fn getMetadata_2(
+            metadataKey: &str,
+            target: &JsValue,
+        ) -> Option<crate::util::JsonDecoratorOptions>;
+
     }
 }
 
@@ -64,7 +70,7 @@ pub fn find_metadata_by_metadata_key_with_context(
         }
         None => {
             // get metadata from target
-            json_decorator_options = Reflect::getMetadata(metadata_key_with_context, &target, "");
+            json_decorator_options = Reflect::getMetadata_2(metadata_key_with_context, &target);
         }
     }
 
@@ -93,7 +99,6 @@ pub fn find_metadata_by_metadata_key_with_context(
                     &JsValue::from_str(metadata_key_with_context),
                 ) {
                     Ok(value) => {
-                        web_sys::console::log_1(&"can be ok ".into());
                         json_decorator_options = Some(value.into());
                     }
                     Err(_) => {
