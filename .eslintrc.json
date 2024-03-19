@@ -167,4 +167,5 @@
     "spaced-comment": "error",
     "use-isnan": "error",
     "valid-typeof": "off"
+  }
 }
