@@ -1,5 +1,5 @@
 use crate::default_context_group::DEFAULT_CONTEXT_GROUP;
-use js_sys::RegExp;
+use js_sys::{Object, RegExp};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
@@ -102,22 +102,10 @@ mod Reflect {
     }
 }
 
-#[allow(non_snake_case)]
-mod Object {
-    use wasm_bindgen::prelude::*;
-
-    #[wasm_bindgen]
-    extern "C" {
-        #[wasm_bindgen(js_namespace = Object)]
-        pub fn getPrototypeOf(o: JsValue) -> JsValue;
-
-    }
-}
-
 #[wasm_bindgen]
 pub fn find_metadata_by_metadata_key_with_context(
     metadata_key_with_context: &str,
-    target: JsValue,
+    target: Object,
     property_key: Option<String>,
     context: Option<JsonStringifierParserCommonContext>,
 ) -> JsValue {
@@ -142,7 +130,7 @@ pub fn find_metadata_by_metadata_key_with_context(
 
     let has_context = context.is_some();
     let concrete_context = context.unwrap();
-    let mut parent = target;
+    let mut parent = target.clone();
 
     while json_decorator_options.is_none() && parent_name(&parent).is_ok() {
         if json_decorator_options.is_none()
@@ -172,7 +160,11 @@ pub fn find_metadata_by_metadata_key_with_context(
         }
         // web_sys::console::log_1(&"XX go here".into());
 
-        parent = Object::getPrototypeOf(parent);
+        let prototype = js_sys::Reflect::get_prototype_of(&parent);
+        if prototype.is_err() {
+            break;
+        }
+        parent = prototype.unwrap();
     }
 
     if json_decorator_options.is_some() {
