@@ -30,8 +30,6 @@ import {
   make_metadata_key_with_context,
   // eslint-disable-next-line camelcase
   make_metadata_keys_with_context} from 'jackson-wasm';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { JacksonError } from './core/JacksonError';
 
 /**
  * Flag for testing if BigInt is supported
