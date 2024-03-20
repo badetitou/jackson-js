@@ -27,7 +27,9 @@ import {
   // eslint-disable-next-line camelcase
   find_metadata_by_metadata_key_with_context,
   // eslint-disable-next-line camelcase
-  make_metadata_key_with_context } from 'jackson-wasm';
+  make_metadata_key_with_context,
+  // eslint-disable-next-line camelcase
+  make_metadata_keys_with_context} from 'jackson-wasm';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { JacksonError } from './core/JacksonError';
 
@@ -48,17 +50,17 @@ export interface MakeMetadataKeysWithContextOptions {
 /**
  * @internal
  */
-export const makeMetadataKeysWithContext = (
-  key: string,
-  options: MakeMetadataKeysWithContextOptions
-): string[] =>
-  options.contextGroups != null && options.contextGroups.length > 0
-    ? options.contextGroups.map((contextGroup) =>
-      make_metadata_key_with_context(key, new MakeMetadataKeyWithContextOptions(contextGroup, options.prefix, options.suffix))
-    )
-    : [
-      make_metadata_key_with_context(key, new MakeMetadataKeyWithContextOptions(null, options.prefix, options.suffix)),
-    ];
+// export const makeMetadataKeysWithContext = (
+//   key: string,
+//   options: MakeMetadataKeysWithContextOptions
+// ): string[] =>
+//   options.contextGroups != null && options.contextGroups.length > 0
+//     ? options.contextGroups.map((contextGroup) =>
+//       make_metadata_key_with_context(key, new MakeMetadataKeyWithContextOptions(contextGroup, options.prefix, options.suffix))
+//     )
+//     : [
+//       make_metadata_key_with_context(key, new MakeMetadataKeyWithContextOptions(null, options.prefix, options.suffix)),
+//     ];
 
 /**
  * @internal
@@ -84,7 +86,7 @@ export const defineMetadata = (
       ...options,
     };
 
-  makeMetadataKeysWithContext(
+  make_metadata_keys_with_context(
     metadataKey,
     makeMetadataKeysWithContextOptions
   ).forEach((metadataKeyWithContext) => {

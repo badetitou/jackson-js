@@ -20,6 +20,9 @@ jobs:
         uses: ATiltedTree/setup-rust@v1.0.5
         with:
           rust-version: stable
+      - uses: jetli/wasm-pack-action@v0.4.0
+        with:
+          version: 'latest'
       - run: npm ci
       - run: npm test
       - run: mkdir coverage

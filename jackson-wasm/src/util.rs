@@ -220,28 +220,33 @@ pub fn make_metadata_key_with_context(
     Ok(result)
 }
 
-// #[wasm_bindgen]
-// pub fn make_metadata_keys_with_context(
-//     key: String,
-//     options: MakeMetadataKeysWithContextOptions,
-// ) -> Vec<String> {
-//     match options.contextGroups() {
-//         Some(context_groups) => context_groups
-//             .iter()
-//             .map(|context_group| {
-//                 make_metadata_key_with_context(
-//                     &key,
-//                     &options.prefix,
-//                     &options.suffix,
-//                     Some(context_group),
-//                 )
-//             })
-//             .collect(),
-//         None => vec![make_metadata_key_with_context(
-//             &key,
-//             &options.prefix,
-//             &options.suffix,
-//             None,
-//         )],
-//     }
-// }
+#[wasm_bindgen]
+pub fn make_metadata_keys_with_context(
+    key: String,
+    options: MakeMetadataKeysWithContextOptions,
+) -> Vec<String> {
+    match options.contextGroups() {
+
+        Some(context_groups) => context_groups
+            .iter()
+            .map(|context_group| {
+                make_metadata_key_with_context(
+                    &key,
+                    MakeMetadataKeyWithContextOptions::new(
+                        Some(context_group.to_string()),
+                        options.prefix(),
+                        options.suffix(),
+                    ),
+                ).ok().unwrap()
+            })
+            .collect(),
+        None => vec![make_metadata_key_with_context(
+            &key,
+            MakeMetadataKeyWithContextOptions::new(
+                None,
+                options.prefix(),
+                options.suffix(),
+            ),
+        ).ok().unwrap() ],
+    }
+}

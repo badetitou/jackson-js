@@ -17,11 +17,13 @@ import {
   isSameConstructor,
   isSameConstructorOrExtensionOf,
   isSameConstructorOrExtensionOfNoObject,
-  makeMetadataKeysWithContext,
   mapClassPropertyToVirtualProperty,
   mapVirtualPropertiesToClassProperties,
   mapVirtualPropertyToClassProperty, sortMappersByOrder
 } from '../util';
+import {
+  // eslint-disable-next-line camelcase
+  make_metadata_keys_with_context} from 'jackson-wasm';
 import {
   ClassType,
   ClassTypeWithDecoratorDefinitions,
@@ -315,7 +317,7 @@ export class JsonParser<T> {
         } else if (hasBigInt && isSameConstructorOrExtensionOfNoObject(currentMainCreator, BigInt)) {
           value = BigInt(+value);
         } else if (isSameConstructorOrExtensionOfNoObject(currentMainCreator, String)) {
-          // @ts-ignore
+          // @ts-expect-error - value is a number
           value += '';
         }
       } else if (value.constructor === Boolean) {
@@ -324,7 +326,7 @@ export class JsonParser<T> {
         } else if (hasBigInt && isSameConstructorOrExtensionOfNoObject(currentMainCreator, BigInt)) {
           value = BigInt(value ? 1 : 0);
         } else if (isSameConstructorOrExtensionOfNoObject(currentMainCreator, String)) {
-          // @ts-ignore
+          // @ts-expect-error - value is a number
           value += '';
         }
       }
@@ -369,15 +371,15 @@ export class JsonParser<T> {
         return this.parseMapAndObjLiteral(key, value, context, globalContext);
       } else if (hasBigInt && isSameConstructorOrExtensionOfNoObject(currentMainCreator, BigInt)) {
         return (value != null && value.constructor === String && value.endsWith('n')) ?
-          // @ts-ignore
+          // @ts-expect-error - value is a number
           currentMainCreator(value.substring(0, value.length - 1)) :
-          // @ts-ignore
+          // @ts-expect-error - value is a number
           currentMainCreator(value);
       } else if (isSameConstructorOrExtensionOfNoObject(currentMainCreator, RegExp)) {
-        // @ts-ignore
+        // @ts-expect-error - value is a number
         return new currentMainCreator(value);
       } else if (isSameConstructorOrExtensionOfNoObject(currentMainCreator, Date)) {
-        // @ts-ignore
+        // @ts-expect-error - value is a number
         return new currentMainCreator(value);
       } else if (typeof value === 'object' && !isIterableNoMapNoString(value)) {
 
@@ -536,7 +538,7 @@ export class JsonParser<T> {
       const jsonDecoratorOptions: JsonDecoratorOptions = this.cachedGetMetadata(metadataKey, currentMainCreator, key, context);
       if (jsonDecoratorOptions) {
         const metadataKeysWithContext =
-          makeMetadataKeysWithContext(metadataKey, {contextGroups: jsonDecoratorOptions.contextGroups});
+          make_metadata_keys_with_context(metadataKey, {contextGroups: jsonDecoratorOptions.contextGroups});
         for (const metadataKeyWithContext of metadataKeysWithContext) {
           decoratorsToBeAppliedForDeepestClass[metadataKeyWithContext] = jsonDecoratorOptions;
         }
@@ -566,7 +568,7 @@ export class JsonParser<T> {
               this.cachedGetMetadata('JsonClassTypeParam:' + argumentIndex, currentMainCreator, methodName, context);
 
             const metadataKeysWithContext =
-              makeMetadataKeysWithContext(classicMetadataKey,
+              make_metadata_keys_with_context(classicMetadataKey,
                 {contextGroups: jsonDecoratorOptions.contextGroups});
             for (const metadataKeyWithContext of metadataKeysWithContext) {
               decoratorsToBeAppliedForDeepestClass[metadataKeyWithContext] = jsonDecoratorOptions;
@@ -576,7 +578,7 @@ export class JsonParser<T> {
               deepestClass = null;
             } else {
               const jsonClassMetadataKeysWithContext =
-                makeMetadataKeysWithContext('JsonClassType', {contextGroups: jsonClassParam.contextGroups});
+                make_metadata_keys_with_context('JsonClassType', {contextGroups: jsonClassParam.contextGroups});
               for (const metadataKeyWithContext of jsonClassMetadataKeysWithContext) {
                 decoratorsToBeAppliedForDeepestClass[metadataKeyWithContext] = jsonClassParam;
               }
@@ -585,7 +587,7 @@ export class JsonParser<T> {
             decoratorsNameFoundForDeepestClass.push(classicMetadataKey);
           } else {
             const metadataKeysWithContext =
-              makeMetadataKeysWithContext(metadataKey, {contextGroups: jsonDecoratorOptions.contextGroups});
+              make_metadata_keys_with_context(metadataKey, {contextGroups: jsonDecoratorOptions.contextGroups});
             for (const metadataKeyWithContext of metadataKeysWithContext) {
               decoratorsToBeAppliedForDeepestClass[metadataKeyWithContext] = jsonDecoratorOptions;
             }
@@ -605,7 +607,7 @@ export class JsonParser<T> {
             this.cachedGetMetadata('JsonClassTypeParam:' + argumentIndex, currentMainCreator, methodName, context);
 
           const metadataKeysWithContext =
-            makeMetadataKeysWithContext('JsonDeserialize',
+            make_metadata_keys_with_context('JsonDeserialize',
               {contextGroups: jsonDecoratorOptionsForFirstClass.contextGroups});
           for (const metadataKeyWithContext of metadataKeysWithContext) {
             decoratorsToBeAppliedForFirstClass[metadataKeyWithContext] = jsonDecoratorOptionsForFirstClass;
@@ -615,7 +617,7 @@ export class JsonParser<T> {
             firstClass = null;
           } else {
             const jsonClassMetadataKeysWithContext =
-              makeMetadataKeysWithContext('JsonClassType', {contextGroups: jsonClassParam.contextGroups});
+              make_metadata_keys_with_context('JsonClassType', {contextGroups: jsonClassParam.contextGroups});
             for (const metadataKeyWithContext of jsonClassMetadataKeysWithContext) {
               decoratorsToBeAppliedForFirstClass[metadataKeyWithContext] = jsonClassParam;
             }
@@ -624,7 +626,7 @@ export class JsonParser<T> {
           decoratorsNameFoundForFirstClass.push('JsonDeserialize');
         } else {
           const metadataKeysWithContext =
-            makeMetadataKeysWithContext(metadataKeyForFirstClass, {contextGroups: jsonDecoratorOptionsForFirstClass.contextGroups});
+          make_metadata_keys_with_context(metadataKeyForFirstClass, {contextGroups: jsonDecoratorOptionsForFirstClass.contextGroups});
           for (const metadataKeyWithContext of metadataKeysWithContext) {
             decoratorsNameFoundForFirstClass[metadataKeyWithContext] = jsonDecoratorOptionsForFirstClass;
           }
@@ -645,6 +647,7 @@ export class JsonParser<T> {
   /**
    * This method implements a cache that can be used instead of calling directly the getMetadata of util.ts
    */
+  // eslint-disable-next-line no-shadow
   private cachedGetMetadata<T extends JsonDecoratorOptions>(metadataKey: string,
                                                             target: ClassType<any>,
                                                             propertyKey: string = null,
@@ -808,10 +811,12 @@ export class JsonParser<T> {
       } else {
         const args = props.map(([, value]) => value);
         instance = ('_method' in jsonCreator && jsonCreator._method) ?
+          // eslint-disable-next-line @typescript-eslint/ban-types
           (method as Function)(...args) : new (method as ObjectConstructor)(...args);
       }
     } else {
       instance = ('_method' in jsonCreator && jsonCreator._method) ?
+        // eslint-disable-next-line @typescript-eslint/ban-types
         (method as Function)(obj) : new (method as ObjectConstructor)(obj);
     }
 
@@ -908,6 +913,7 @@ export class JsonParser<T> {
 
     if (jsonCreatorMode === JsonCreatorMode.PROPERTIES_OBJECT) {
       instance = ('_method' in jsonCreator && jsonCreator._method) ?
+        // eslint-disable-next-line @typescript-eslint/ban-types
         (method as Function)(instance) : new (method as ObjectConstructor)(instance);
     }
 
@@ -1326,7 +1332,7 @@ export class JsonParser<T> {
           const decorators = result.decorators;
           for (const decorator of decorators) {
             const metadataKeysWithContext =
-              makeMetadataKeysWithContext(decorator.name, {contextGroups: decorator.options.contextGroups});
+              make_metadata_keys_with_context(decorator.name, {contextGroups: decorator.options.contextGroups});
             for (const metadataKeyWithContext of metadataKeysWithContext) {
               decoratorsToBeApplied[metadataKeyWithContext] = {
                 enabled: true,
@@ -1837,7 +1843,7 @@ export class JsonParser<T> {
         (newIterable as Array<any>).push(this.deepTransform(key, value, undefined, newContext, globalContext));
       }
       if (!isSameConstructor(currentCreator, Array)) {
-        // @ts-ignore
+        // @ts-expect-error BVER
         newIterable = new currentCreator(...newIterable);
       }
     }

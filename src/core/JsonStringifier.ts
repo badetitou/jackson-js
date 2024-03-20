@@ -64,10 +64,12 @@ import {
   isSameConstructorOrExtensionOfNoObject,
   isValueEmpty,
   isVariablePrimitiveType,
-  makeMetadataKeysWithContext,
   mapVirtualPropertiesToClassProperties,
   sortMappersByOrder
 } from '../util';
+import {
+  // eslint-disable-next-line camelcase
+  make_metadata_keys_with_context} from 'jackson-wasm';
 // import * as moment from 'moment';
 // import {v1 as uuidv1, v3 as uuidv3, v4 as uuidv4, v5 as uuidv5} from 'uuid';
 import {JacksonError} from './JacksonError';
@@ -624,7 +626,7 @@ export class JsonStringifier<T> {
       const jsonDecoratorOptions: JsonDecoratorOptions = getMetadata(metadataKey, currentMainCreator, key, context);
       if (jsonDecoratorOptions) {
         const metadataKeysWithContext =
-          makeMetadataKeysWithContext(metadataKey, {contextGroups: jsonDecoratorOptions.contextGroups});
+        make_metadata_keys_with_context(metadataKey, {contextGroups: jsonDecoratorOptions.contextGroups});
         for (const metadataKeyWithContext of metadataKeysWithContext) {
           decoratorsToBeApplied[metadataKeyWithContext] = jsonDecoratorOptions;
         }
