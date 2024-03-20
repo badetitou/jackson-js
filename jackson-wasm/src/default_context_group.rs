@@ -1,0 +1,1 @@
+pub const DEFAULT_CONTEXT_GROUP: &str = "defaultContextGroup";

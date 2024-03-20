@@ -19,52 +19,22 @@ import {
   JsonStringifierParserCommonContext,
 } from './@types';
 import 'reflect-metadata';
-import { JacksonError } from './core/JacksonError';
+// import { JacksonError } from './core/JacksonError';
 import { DefaultContextGroup } from './core/DefaultContextGroup';
-// eslint-disable-next-line camelcase
-import { find_metadata_by_metadata_key_with_context } from 'jackson-wasm';
+
+import {
+  MakeMetadataKeyWithContextOptions,
+  // eslint-disable-next-line camelcase
+  find_metadata_by_metadata_key_with_context,
+  // eslint-disable-next-line camelcase
+  make_metadata_key_with_context } from 'jackson-wasm';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+import { JacksonError } from './core/JacksonError';
 
 /**
  * Flag for testing if BigInt is supported
  */
 export const hasBigInt = typeof BigInt !== 'undefined';
-
-/**
- * @internal
- */
-export interface MakeMetadataKeyWithContextOptions {
-  prefix?: string;
-  suffix?: string;
-  contextGroup?: string;
-}
-
-/**
- * @internal
- */
-export const makeMetadataKeyWithContext = (
-  key: string,
-  options: MakeMetadataKeyWithContextOptions = {}
-): string => {
-  const regExp = /^[\w]+$/;
-  if (options.contextGroup != null && !regExp.test(options.contextGroup)) {
-    // eslint-disable-next-line max-len
-    throw new JacksonError(
-      // eslint-disable-next-line max-len
-      `Invalid context group name "${options.contextGroup}" found! The context group name must match "/^[\\w]+$/" regular expression, that is a non-empty string which contains any alphanumeric character including the underscore.`
-    );
-  }
-
-  return (
-    'jackson:' +
-    (options.contextGroup != null
-      ? options.contextGroup
-      : DefaultContextGroup) +
-    ':' +
-    (options.prefix != null ? options.prefix + ':' : '') +
-    key +
-    (options.suffix != null ? ':' + options.suffix : '')
-  );
-};
 
 /**
  * @internal
@@ -84,18 +54,10 @@ export const makeMetadataKeysWithContext = (
 ): string[] =>
   options.contextGroups != null && options.contextGroups.length > 0
     ? options.contextGroups.map((contextGroup) =>
-      makeMetadataKeyWithContext(key, {
-        prefix: options.prefix,
-        suffix: options.suffix,
-        contextGroup,
-      })
+      make_metadata_key_with_context(key, new MakeMetadataKeyWithContextOptions(contextGroup, options.prefix, options.suffix))
     )
     : [
-      makeMetadataKeyWithContext(key, {
-        prefix: options.prefix,
-        suffix: options.suffix,
-        contextGroup: null,
-      }),
+      make_metadata_key_with_context(key, new MakeMetadataKeyWithContextOptions(null, options.prefix, options.suffix)),
     ];
 
 /**
@@ -235,6 +197,7 @@ export const makeJacksonDecorator = (
       }
     }
   );
+
 
 /**
  * https://github.com/rphansen91/es-arguments/blob/master/src/arguments.js#L3
@@ -472,10 +435,8 @@ const isMetadataKeyFoundInContext = (
 ) => {
   const suffix = metadataKey.split(':').pop();
   for (const contextGroup of contextGroupsWithDefault) {
-    const metadataKeyWithContext = makeMetadataKeyWithContext(property, {
-      contextGroup,
-      suffix,
-    });
+    // eslint-disable-next-line max-len
+    const metadataKeyWithContext = make_metadata_key_with_context(property, new MakeMetadataKeyWithContextOptions(contextGroup, null, suffix));
     if (metadataKeyWithContext === metadataKey) {
       return true;
     }
@@ -583,12 +544,8 @@ export const internVirtualPropertyToClassPropertiesMapping = (
         const suffix = metadataKey.substring(suffixStartIndex + 21);
         const metadataKeyFoundInContext = contextGroupsWithDefault.some(
           (contextGroup) => {
-            const metadataKeyWithContext = makeMetadataKeyWithContext(
-              'JsonVirtualProperty',
-              {
-                contextGroup,
-                suffix,
-              }
+            const metadataKeyWithContext = make_metadata_key_with_context(
+              'JsonVirtualProperty', new MakeMetadataKeyWithContextOptions(contextGroup, null, suffix)
             );
             return metadataKeyWithContext === metadataKey;
           }
@@ -686,12 +643,8 @@ export const classPropertiesToVirtualPropertiesMapping = (
     | JsonSetterOptions = null;
 
     for (const contextGroup of contextGroupsWithDefault) {
-      const metadataKeyWithContext = makeMetadataKeyWithContext(
-        'JsonVirtualProperty',
-        {
-          contextGroup,
-          suffix: classProperty,
-        }
+      const metadataKeyWithContext = make_metadata_key_with_context(
+        'JsonVirtualProperty', new MakeMetadataKeyWithContextOptions(contextGroup, null, classProperty)
       );
       jsonVirtualProperty = Reflect.getMetadata(metadataKeyWithContext, target);
       if (jsonVirtualProperty != null) {
@@ -922,9 +875,7 @@ export const findMetadata = <T extends JsonDecoratorOptions>(
   ];
 
   for (const contextGroup of contextGroupsWithDefault) {
-    const metadataKeyWithContext = makeMetadataKeyWithContext(metadataKey, {
-      contextGroup,
-    });
+    const metadataKeyWithContext = make_metadata_key_with_context(metadataKey, new MakeMetadataKeyWithContextOptions(contextGroup));
 
     jsonDecoratorOptions = find_metadata_by_metadata_key_with_context(
       metadataKeyWithContext,
