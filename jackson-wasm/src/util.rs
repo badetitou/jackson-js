@@ -1,20 +1,31 @@
-use crate::default_context_group::DEFAULT_CONTEXT_GROUP;
-use js_sys::{Object, RegExp};
+use crate::default_context_group::{self, DEFAULT_CONTEXT_GROUP};
+use js_sys::{Array, Boolean, Object, RegExp};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
 extern "C" {
+
+    #[wasm_bindgen(extends = Object)]
     pub type JsonDecoratorOptions;
+    #[wasm_bindgen(method, getter)]
+    pub fn enabled(this: &JsonDecoratorOptions) -> Option<Boolean>;
+
+    #[wasm_bindgen(method, setter)]
+    fn set_enabled(this: &JsonDecoratorOptions, val: Boolean);
 
     pub type InternalDecorators;
 
     pub type ClassType;
 
     pub type JsonStringifierParserCommonContext;
+    #[wasm_bindgen(method, getter)]
+    pub fn withContextGroups(this: &JsonStringifierParserCommonContext) -> Option<Vec<String>>;
 
     #[wasm_bindgen(method, getter)]
     pub fn _internalDecorators(this: &JsonStringifierParserCommonContext) -> Option<js_sys::Map>;
 
+    #[wasm_bindgen(method, getter)]
+    pub fn decoratorsEnabled(this: &JsonStringifierParserCommonContext) -> Option<Object>;
 
     // Another type
 
@@ -43,8 +54,16 @@ pub struct MakeMetadataKeyWithContextOptions {
 impl MakeMetadataKeyWithContextOptions {
     #[wasm_bindgen(constructor)]
     #[allow(non_snake_case)]
-    pub fn new(contextGroup: Option<String>, prefix: Option<String>, suffix: Option<String>) -> MakeMetadataKeyWithContextOptions {
-        MakeMetadataKeyWithContextOptions { contextGroup, prefix, suffix }
+    pub fn new(
+        contextGroup: Option<String>,
+        prefix: Option<String>,
+        suffix: Option<String>,
+    ) -> MakeMetadataKeyWithContextOptions {
+        MakeMetadataKeyWithContextOptions {
+            contextGroup,
+            prefix,
+            suffix,
+        }
     }
 
     #[wasm_bindgen(getter)]
@@ -102,13 +121,12 @@ mod Reflect {
     }
 }
 
-#[wasm_bindgen]
 pub fn find_metadata_by_metadata_key_with_context(
     metadata_key_with_context: &str,
-    target: Object,
-    property_key: Option<String>,
-    context: Option<JsonStringifierParserCommonContext>,
-) -> JsValue {
+    target: &Object,
+    property_key: Option<&String>,
+    context: Option<&JsonStringifierParserCommonContext>,
+) -> Option<JsonDecoratorOptions> {
     let mut json_decorator_options: Option<JsonDecoratorOptions>;
     let has_property_key = property_key.is_some();
 
@@ -167,10 +185,8 @@ pub fn find_metadata_by_metadata_key_with_context(
         parent = prototype.unwrap();
     }
 
-    if json_decorator_options.is_some() {
-        return json_decorator_options.unwrap().into();
-    }
-    return JsValue::null();
+    json_decorator_options
+
 }
 
 fn parent_name(parent: &JsValue) -> Result<JsValue, JsValue> {
@@ -218,7 +234,6 @@ pub fn make_metadata_keys_with_context(
     options: MakeMetadataKeysWithContextOptions,
 ) -> Vec<String> {
     match options.contextGroups() {
-
         Some(context_groups) => context_groups
             .iter()
             .map(|context_group| {
@@ -229,16 +244,123 @@ pub fn make_metadata_keys_with_context(
                         options.prefix(),
                         options.suffix(),
                     ),
-                ).ok().unwrap()
+                )
+                .ok()
+                .unwrap()
             })
             .collect(),
         None => vec![make_metadata_key_with_context(
             &key,
-            MakeMetadataKeyWithContextOptions::new(
-                None,
-                options.prefix(),
-                options.suffix(),
-            ),
-        ).ok().unwrap() ],
+            MakeMetadataKeyWithContextOptions::new(None, options.prefix(), options.suffix()),
+        )
+        .ok()
+        .unwrap()],
     }
+}
+
+pub fn find_metadata(
+    metadata_key: &str,
+    target: &Object,
+    property_key: Option<&String>,
+    context: &JsonStringifierParserCommonContext,
+) -> Option<JsonDecoratorOptions> {
+    // let context_groups_with_default = match context.withContextGroups() {
+    //     Some(groups) => groups,
+    //     None => vec![default_context_group::DEFAULT_CONTEXT_GROUP.to_string()],
+    // };
+
+    let context_groups_with_default = {
+        let mut groups = context.withContextGroups().clone().unwrap_or(Vec::new());
+        groups.push(default_context_group::DEFAULT_CONTEXT_GROUP.to_string());
+        groups
+    };
+
+    // web_sys::console::log_2(
+    //     &JsValue::from_str("Wasm context_groups_with_default size:"),
+    //     &JsValue::from(context_groups_with_default.clone().len()),
+    // );
+
+
+    for context_group in context_groups_with_default {
+        let metadata_key_with_context = make_metadata_key_with_context(
+            metadata_key,
+            MakeMetadataKeyWithContextOptions::new(Some(context_group.clone()), None, None),
+        );
+
+        let json_decorator_options = find_metadata_by_metadata_key_with_context(
+            &metadata_key_with_context.ok().unwrap(),
+            &target,
+            property_key,
+            Some(&context),
+        );
+
+        if json_decorator_options.is_some() {
+            return json_decorator_options;
+        }
+    }
+    return None;
+}
+
+#[wasm_bindgen]
+pub fn get_metadata(
+    metadata_key: String,
+    target: Object,
+    property_key: Option<String>,
+    context: JsonStringifierParserCommonContext,
+) -> JsValue {
+    let json_decorator_options = if metadata_key.starts_with("jackson:") {
+        find_metadata_by_metadata_key_with_context(
+            &metadata_key,
+            &target,
+            property_key.as_ref(),
+            Some(&context),
+        )
+    } else {
+        find_metadata(&metadata_key, &target, property_key.as_ref(), &context)
+    };
+
+    if json_decorator_options.is_none() {
+        return JsValue::undefined();
+    }
+
+    if let Some(decorator_options) = json_decorator_options {
+
+        if JsValue::is_undefined(&decorator_options) {
+            return JsValue::undefined();
+        }
+
+        if let Some(decorators_enabled) = &context.decoratorsEnabled() {
+            let decorator_keys: Array = Object::keys(&decorators_enabled);
+            let decorator_key = decorator_keys.iter().find(|key| {
+                if let Some(key_str) = key.as_string() {
+                    if metadata_key.starts_with("jackson:") {
+                        metadata_key.contains(&format!(":{}", key_str))
+                    } else {
+                        metadata_key.starts_with(&key_str)
+                    }
+                } else {
+                    false
+                }
+            });
+
+            if let Some(decorator_key) = decorator_key {
+                let decorator_value =
+                    js_sys::Reflect::get(decorators_enabled, &decorator_key)
+                        .ok();
+
+                if let Some(enabled) = decorator_value {
+                    if Boolean::is_type_of(&enabled) {
+                        decorator_options.set_enabled(enabled.into());
+                    }
+                }
+            }
+            if decorator_options.enabled().is_some() && decorator_options.enabled().unwrap().into()
+            {
+                return JsValue::from(decorator_options);
+            } else {
+                return JsValue::undefined();
+            }
+        }
+    }
+    JsValue::undefined()
 }

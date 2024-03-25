@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 import { parseScript } from 'meriyah';
 import {
   ClassDeclaration,
@@ -24,11 +25,8 @@ import { DefaultContextGroup } from './core/DefaultContextGroup';
 
 import {
   MakeMetadataKeyWithContextOptions,
-  // eslint-disable-next-line camelcase
-  find_metadata_by_metadata_key_with_context,
-  // eslint-disable-next-line camelcase
+  get_metadata,
   make_metadata_key_with_context,
-  // eslint-disable-next-line camelcase
   make_metadata_keys_with_context} from 'jackson-wasm';
 
 /**
@@ -858,79 +856,6 @@ export const isInt = (n: number) => Number(n) === n && n % 1 === 0;
  */
 export const isFloat = (n: number) => Number(n) === n && n % 1 !== 0;
 
-/**
- * @internal
- */
-export const findMetadata = <T extends JsonDecoratorOptions>(
-  metadataKey: string,
-  target: Record<string, any>,
-  propertyKey: string = null,
-  context: JsonStringifierParserCommonContext<any>
-): T => {
-  let jsonDecoratorOptions: JsonDecoratorOptions = null;
-
-  const contextGroupsWithDefault = [
-    ...(context.withContextGroups ? context.withContextGroups : []),
-    DefaultContextGroup,
-  ];
-
-  for (const contextGroup of contextGroupsWithDefault) {
-    const metadataKeyWithContext = make_metadata_key_with_context(metadataKey, new MakeMetadataKeyWithContextOptions(contextGroup));
-
-    jsonDecoratorOptions = find_metadata_by_metadata_key_with_context(
-      metadataKeyWithContext,
-      target,
-      propertyKey,
-      context
-    );
-
-    if (jsonDecoratorOptions != null) {
-      break;
-    }
-  }
-
-  return jsonDecoratorOptions as T;
-};
-
-/**
- * @internal
- */
-export const getMetadata = <T extends JsonDecoratorOptions>(
-  metadataKey: string,
-  target: Record<string, any>,
-  propertyKey: string = null,
-  context: JsonStringifierParserCommonContext<any>
-): T => {
-  const jsonDecoratorOptions: JsonDecoratorOptions = metadataKey.startsWith(
-    'jackson:'
-  )
-    ? find_metadata_by_metadata_key_with_context(
-      metadataKey,
-      target,
-      propertyKey,
-      context
-    )
-    : findMetadata(metadataKey, target, propertyKey, context);
-
-  if (jsonDecoratorOptions && context && context.decoratorsEnabled) {
-    const decoratorKeys = Object.keys(context.decoratorsEnabled);
-    const decoratorKey = decoratorKeys.find((key) =>
-      metadataKey.startsWith('jackson:')
-        ? metadataKey.includes(':' + key)
-        : metadataKey.startsWith(key)
-    );
-    if (
-      decoratorKey &&
-      typeof context.decoratorsEnabled[decoratorKey] === 'boolean'
-    ) {
-      jsonDecoratorOptions.enabled = context.decoratorsEnabled[decoratorKey];
-    }
-  }
-  return jsonDecoratorOptions && jsonDecoratorOptions.enabled
-    ? (jsonDecoratorOptions as T)
-    : undefined;
-};
-
 const findMetadataKeysCache = new Map<Record<string, any>, any[]>();
 
 /**
@@ -1014,13 +939,13 @@ export const getMetadataKeys = (
 /**
  * @internal
  */
-export const hasMetadata = <T extends JsonDecoratorOptions>(
+export const hasMetadata = (
   metadataKey: string,
   target: Record<string, any>,
   propertyKey: string = null,
   context: JsonStringifierParserCommonContext<any>
 ): boolean => {
-  const option: JsonDecoratorOptions = getMetadata<T>(
+  const option: JsonDecoratorOptions = get_metadata(
     metadataKey,
     target,
     propertyKey,

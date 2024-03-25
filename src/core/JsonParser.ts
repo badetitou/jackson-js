@@ -1,3 +1,4 @@
+/* eslint-disable camelcase */
 /**
  * @packageDocumentation
  * @module Core
@@ -8,7 +9,6 @@ import {
   getClassProperties,
   getDeepestClass,
   getDefaultPrimitiveTypeValue,
-  getMetadata,
   getMetadataKeys,
   hasBigInt,
   isClassIterable,
@@ -22,7 +22,7 @@ import {
   mapVirtualPropertyToClassProperty, sortMappersByOrder
 } from '../util';
 import {
-  // eslint-disable-next-line camelcase
+  get_metadata,
   make_metadata_keys_with_context} from 'jackson-wasm';
 import {
   ClassType,
@@ -660,16 +660,16 @@ export class JsonParser<T> {
         if (map2.has(propertyKey)) {
           return map2.get(propertyKey);
         } else {
-          return map2.set(propertyKey, getMetadata(metadataKey, target, propertyKey, context)).get(propertyKey);
+          return map2.set(propertyKey, get_metadata(metadataKey, target, propertyKey, context)).get(propertyKey);
         }
       } else {
         return map1.set(metadataKey, new Map()).get(metadataKey)
-          .set(propertyKey, getMetadata(metadataKey, target, propertyKey, context)).get(propertyKey);
+          .set(propertyKey, get_metadata(metadataKey, target, propertyKey, context)).get(propertyKey);
       }
     }
     return this.getMetadataCache.set(target, new Map<string, Map<string, T>>()).get(target)
       .set(metadataKey, new Map<string, T>()).get(metadataKey)
-      .set(propertyKey, getMetadata(metadataKey, target, propertyKey, context)).get(propertyKey);
+      .set(propertyKey, get_metadata(metadataKey, target, propertyKey, context)).get(propertyKey);
   }
 
   /**
