@@ -136,13 +136,13 @@ pub fn find_metadata_by_metadata_key_with_context(
             // get metadata from property_key
             json_decorator_options = Reflect::getMetadata(
                 metadata_key_with_context,
-                &target,
+                target,
                 property_key.unwrap().as_str(),
             );
         }
         None => {
             // get metadata from target
-            json_decorator_options = Reflect::getMetadata_2(metadata_key_with_context, &target);
+            json_decorator_options = Reflect::getMetadata_2(metadata_key_with_context, target);
         }
     }
 
@@ -289,7 +289,7 @@ pub fn find_metadata(
 
         let json_decorator_options = find_metadata_by_metadata_key_with_context(
             &metadata_key_with_context.ok().unwrap(),
-            &target,
+            target,
             property_key,
             Some(&context),
         );
