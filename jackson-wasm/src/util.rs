@@ -131,6 +131,7 @@ pub fn find_metadata_by_metadata_key_with_context(
     let has_property_key = property_key.is_some();
 
     // The logic to get metadata from target and property_key goes here
+
     match property_key {
         Some(_) => {
             // get metadata from property_key
@@ -142,6 +143,7 @@ pub fn find_metadata_by_metadata_key_with_context(
         }
         None => {
             // get metadata from target
+
             json_decorator_options = Reflect::getMetadata_2(metadata_key_with_context, target);
         }
     }
@@ -176,7 +178,6 @@ pub fn find_metadata_by_metadata_key_with_context(
                 }
             }
         }
-        // web_sys::console::log_1(&"XX go here".into());
 
         let prototype = js_sys::Reflect::get_prototype_of(&parent);
         if prototype.is_err() {
@@ -186,7 +187,6 @@ pub fn find_metadata_by_metadata_key_with_context(
     }
 
     json_decorator_options
-
 }
 
 fn parent_name(parent: &JsValue) -> Result<JsValue, JsValue> {
@@ -275,11 +275,9 @@ pub fn find_metadata(
         groups
     };
 
-    // web_sys::console::log_2(
     //     &JsValue::from_str("Wasm context_groups_with_default size:"),
     //     &JsValue::from(context_groups_with_default.clone().len()),
     // );
-
 
     for context_group in context_groups_with_default {
         let metadata_key_with_context = make_metadata_key_with_context(
@@ -298,6 +296,7 @@ pub fn find_metadata(
             return json_decorator_options;
         }
     }
+
     return None;
 }
 
@@ -319,12 +318,7 @@ pub fn get_metadata(
         find_metadata(&metadata_key, &target, property_key.as_ref(), &context)
     };
 
-    if json_decorator_options.is_none() {
-        return JsValue::undefined();
-    }
-
     if let Some(decorator_options) = json_decorator_options {
-
         if JsValue::is_undefined(&decorator_options) {
             return JsValue::undefined();
         }
@@ -344,9 +338,7 @@ pub fn get_metadata(
             });
 
             if let Some(decorator_key) = decorator_key {
-                let decorator_value =
-                    js_sys::Reflect::get(decorators_enabled, &decorator_key)
-                        .ok();
+                let decorator_value = js_sys::Reflect::get(decorators_enabled, &decorator_key).ok();
 
                 if let Some(enabled) = decorator_value {
                     if Boolean::is_type_of(&enabled) {
@@ -354,12 +346,10 @@ pub fn get_metadata(
                     }
                 }
             }
-            if decorator_options.enabled().is_some() && decorator_options.enabled().unwrap().into()
-            {
-                return JsValue::from(decorator_options);
-            } else {
-                return JsValue::undefined();
-            }
+        }
+
+        if decorator_options.enabled().is_some() && decorator_options.enabled().unwrap().into() {
+            return JsValue::from(decorator_options);
         }
     }
     JsValue::undefined()
