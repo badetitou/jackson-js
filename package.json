@@ -36,7 +36,7 @@
     "build:dev": "npm run clean && \"./node_modules/.bin/webpack\" --config webpack.dev.js",
     "build:prod": "npm run clean && ./node_modules/.bin/webpack --config webpack.prod.js",
     "build:win:dev": "npm run clean && \"./node_modules/.bin/webpack\" --config webpack.dev.js",
-    "build:win:prod": "npm run clean && \"./node_modules/.bin/webpack\" --config webpack.prod.js",
+    "build:win:prod": "npm run build:rs:prod && npm run clean && \"./node_modules/.bin/webpack\" --config webpack.prod.js",
     "build:rs:prod": "cd jackson-wasm && wasm-pack build",
     "build:rs:node": "cd jackson-wasm && wasm-pack build --target nodejs",
     "start:node:dev": "node dist/lib.node",

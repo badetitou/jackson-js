@@ -1,4 +1,4 @@
-use crate::default_context_group::{self, DEFAULT_CONTEXT_GROUP};
+use crate::{default_context_group::{self, DEFAULT_CONTEXT_GROUP}, utils};
 use js_sys::{Array, Boolean, Object, RegExp};
 use wasm_bindgen::prelude::*;
 
@@ -198,6 +198,7 @@ pub fn make_metadata_key_with_context(
     key: &str,
     options: MakeMetadataKeyWithContextOptions,
 ) -> Result<String, JsValue> {
+    utils::set_panic_hook();
     let reg_exp = RegExp::new(r"^[\w]+$", "");
 
     if let Some(context_group) = &options.contextGroup {
