@@ -265,20 +265,12 @@ pub fn find_metadata(
     property_key: Option<&String>,
     context: &JsonStringifierParserCommonContext,
 ) -> Option<JsonDecoratorOptions> {
-    // let context_groups_with_default = match context.withContextGroups() {
-    //     Some(groups) => groups,
-    //     None => vec![default_context_group::DEFAULT_CONTEXT_GROUP.to_string()],
-    // };
 
     let context_groups_with_default = {
         let mut groups = context.withContextGroups().clone().unwrap_or(Vec::new());
         groups.push(default_context_group::DEFAULT_CONTEXT_GROUP.to_string());
         groups
     };
-
-    //     &JsValue::from_str("Wasm context_groups_with_default size:"),
-    //     &JsValue::from(context_groups_with_default.clone().len()),
-    // );
 
     for context_group in context_groups_with_default {
         let metadata_key_with_context = make_metadata_key_with_context(
