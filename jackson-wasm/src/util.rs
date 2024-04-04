@@ -1,4 +1,7 @@
-use crate::{default_context_group::{self, DEFAULT_CONTEXT_GROUP}, utils};
+use crate::{
+    default_context_group::{self, DEFAULT_CONTEXT_GROUP},
+    utils,
+};
 use js_sys::{Array, Boolean, Object, RegExp};
 use wasm_bindgen::prelude::*;
 
@@ -12,6 +15,9 @@ extern "C" {
 
     #[wasm_bindgen(method, setter)]
     fn set_enabled(this: &JsonDecoratorOptions, val: Boolean);
+
+    #[wasm_bindgen(method, getter)]
+    pub fn value(this: &JsonDecoratorOptions) -> Option<String>;
 
     pub type InternalDecorators;
 
@@ -45,7 +51,7 @@ extern "C" {
 #[wasm_bindgen]
 pub struct MakeMetadataKeyWithContextOptions {
     #[allow(non_snake_case)]
-    contextGroup: Option<String>,
+    context_group: Option<String>,
     prefix: Option<String>,
     suffix: Option<String>,
 }
@@ -55,12 +61,12 @@ impl MakeMetadataKeyWithContextOptions {
     #[wasm_bindgen(constructor)]
     #[allow(non_snake_case)]
     pub fn new(
-        contextGroup: Option<String>,
+        context_group: Option<String>,
         prefix: Option<String>,
         suffix: Option<String>,
     ) -> MakeMetadataKeyWithContextOptions {
         MakeMetadataKeyWithContextOptions {
-            contextGroup,
+            context_group,
             prefix,
             suffix,
         }
@@ -69,13 +75,13 @@ impl MakeMetadataKeyWithContextOptions {
     #[wasm_bindgen(getter)]
     #[allow(non_snake_case)]
     pub fn contextGroup(&self) -> Option<String> {
-        self.contextGroup.clone()
+        self.context_group.clone()
     }
 
     #[wasm_bindgen(setter)]
     #[allow(non_snake_case)]
     pub fn set_contextGroup(&mut self, value: Option<String>) {
-        self.contextGroup = value;
+        self.context_group = value;
     }
 
     #[wasm_bindgen(getter)]
@@ -201,14 +207,14 @@ pub fn make_metadata_key_with_context(
     utils::set_panic_hook();
     let reg_exp = RegExp::new(r"^[\w]+$", "");
 
-    if let Some(context_group) = &options.contextGroup {
+    if let Some(context_group) = &options.context_group {
         if !reg_exp.test(context_group) {
             return Err(JsValue::from_str("Invalid context group name found! The context group name must match \"/^[\\w]+$/\" regular expression, that is a non-empty string which contains any alphanumeric character including the underscore."));
         }
     }
 
     let context_group: String = options
-        .contextGroup
+        .context_group
         .unwrap_or(DEFAULT_CONTEXT_GROUP.to_string());
     let prefix = options.prefix.unwrap_or(String::from(""));
     let suffix = options.suffix.unwrap_or(String::from(""));
@@ -265,7 +271,6 @@ pub fn find_metadata(
     property_key: Option<&String>,
     context: &JsonStringifierParserCommonContext,
 ) -> Option<JsonDecoratorOptions> {
-
     let context_groups_with_default = {
         let mut groups = context.withContextGroups().clone().unwrap_or(Vec::new());
         groups.push(default_context_group::DEFAULT_CONTEXT_GROUP.to_string());
@@ -346,4 +351,35 @@ pub fn get_metadata(
         }
     }
     JsValue::undefined()
+}
+
+#[wasm_bindgen]
+pub fn map_class_property_to_virtual_property(
+    target: Object,
+    class_property: String,
+    context: JsonStringifierParserCommonContext,
+) -> String {
+    let mut context_groups_with_default = context.withContextGroups().unwrap_or(Vec::new());
+    context_groups_with_default.push("DefaultContextGroup".to_string());
+
+    let mut json_virtual_property;
+
+    for context_group in &context_groups_with_default {
+        let metadata_key_with_context = make_metadata_key_with_context(
+            "JsonVirtualProperty",
+            MakeMetadataKeyWithContextOptions {
+                context_group: Some(context_group.to_string()),
+                prefix: None,
+                suffix: Some(class_property.clone()),
+            },
+        );
+
+        json_virtual_property =
+            Reflect::getMetadata_2(&metadata_key_with_context.ok().unwrap(), &target);
+        if json_virtual_property.is_some() {
+            return json_virtual_property.unwrap().value().unwrap();
+        }
+    }
+
+    class_property.clone()
 }

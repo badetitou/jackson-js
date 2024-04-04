@@ -25,6 +25,7 @@ import { DefaultContextGroup } from './core/DefaultContextGroup';
 
 import {
   MakeMetadataKeyWithContextOptions,
+  map_class_property_to_virtual_property,
   get_metadata,
   make_metadata_key_with_context,
   make_metadata_keys_with_context} from 'jackson-wasm';
@@ -590,20 +591,20 @@ export const mapVirtualPropertyToClassProperty = (
     .values()
     .next().value;
 
-/**
- * @internal
- */
-export const mapClassPropertiesToVirtualProperties = (
-  target: Record<string, any>,
-  classProperties: string[],
-  context: JsonStringifierParserCommonContext<any>
-): string[] => [
-  ...classPropertiesToVirtualPropertiesMapping(
-    target,
-    classProperties,
-    context
-  ).values(),
-];
+// /**
+//  * @internal
+//  */
+// export const mapClassPropertiesToVirtualProperties = (
+//   target: Record<string, any>,
+//   classProperties: string[],
+//   context: JsonStringifierParserCommonContext<any>
+// ): string[] => [
+//   ...class_properties_to_virtual_properties_mapping(
+//     target,
+//     classProperties,
+//     context
+//   ).values(),
+// ];
 
 /**
  * @internal
@@ -644,6 +645,15 @@ export const classPropertiesToVirtualPropertiesMapping = (
   return propertiesMapping;
 };
 
+// /**
+//  * @internal
+//  */
+// export const mapClassPropertyToVirtualProperty = (
+//   target: Record<string, any>,
+//   key: string,
+//   context: JsonStringifierParserCommonContext<any>
+// ): string => map_class_properties_to_virtual_properties(target, [key], context)[0];
+
 /**
  * @internal
  */
@@ -651,7 +661,7 @@ export const mapClassPropertyToVirtualProperty = (
   target: Record<string, any>,
   key: string,
   context: JsonStringifierParserCommonContext<any>
-): string => mapClassPropertiesToVirtualProperties(target, [key], context)[0];
+): string => map_class_property_to_virtual_property(target, key, context);
 
 /**
  * @internal
