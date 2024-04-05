@@ -364,11 +364,11 @@ pub fn map_class_property_to_virtual_property(
 
     let mut json_virtual_property;
 
-    for context_group in &context_groups_with_default {
+    for context_group in context_groups_with_default {
         let metadata_key_with_context = make_metadata_key_with_context(
             "JsonVirtualProperty",
             MakeMetadataKeyWithContextOptions {
-                context_group: Some(context_group.to_string()),
+                context_group: Some(context_group),
                 prefix: None,
                 suffix: Some(class_property.clone()),
             },
@@ -381,5 +381,5 @@ pub fn map_class_property_to_virtual_property(
         }
     }
 
-    class_property.clone()
+    class_property
 }
