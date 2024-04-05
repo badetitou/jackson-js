@@ -17,12 +17,12 @@ import {
   isSameConstructor,
   isSameConstructorOrExtensionOf,
   isSameConstructorOrExtensionOfNoObject,
-  mapClassPropertyToVirtualProperty,
   mapVirtualPropertiesToClassProperties,
   mapVirtualPropertyToClassProperty, sortMappersByOrder
 } from '../util';
 import {
   get_metadata,
+  map_class_property_to_virtual_property,
   make_metadata_keys_with_context} from 'jackson-wasm';
 import {
   ClassType,
@@ -701,7 +701,7 @@ export class JsonParser<T> {
             continue;
           }
         }
-        const virtualProperty = mapClassPropertyToVirtualProperty(currentMainCreator, key, context);
+        const virtualProperty = map_class_property_to_virtual_property(currentMainCreator, key, context);
         return {
           found: true,
           value: deserializer.mapper(virtualProperty, value, context),
