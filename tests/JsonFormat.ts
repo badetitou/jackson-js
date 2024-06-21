@@ -77,6 +77,88 @@ test('@JsonFormat at property level', t => {
   t.deepEqual(eventParsed, event);
 });
 
+test('@JsonFormat of date at parsing at config level with another format', t => {
+  class Event {
+    @JsonProperty()
+    @JsonFormat({
+      shape: JsonFormatShape.STRING,
+      pattern: 'DD/MM/YYYY hh:mm:ss',
+    })
+    @JsonClassType({type: () => [Date]})
+    startDate: Date;
+
+    // eslint-disable-next-line no-shadow
+    constructor(startDate: Date) {
+      this.startDate = startDate;
+    }
+  }
+  const startDate = new Date('2020-03-24 10:00:00');
+  const event = new Event(startDate);
+
+  const objectMapper = new ObjectMapper();
+
+  const jsonData = objectMapper.stringify<Event>(event, {
+    dateLibrary: moment
+  });
+  // eslint-disable-next-line max-len
+  t.deepEqual(JSON.parse(jsonData), JSON.parse('{"startDate":"24/03/2020 10:00:00"}'));
+
+  objectMapper.defaultParserContext = {
+    deserializers: [
+      {
+        type: () => Date,
+        order: 0,
+        mapper: (key, value: {dateWrapper: number}) => moment(value, 'DD/MM/YYYY hh:mm:ss').toDate()
+      }
+    ]
+  };
+
+  const eventParsed = objectMapper.parse<Event>(jsonData, {mainCreator: () => [Event]});
+  t.assert(eventParsed instanceof Event);
+  t.deepEqual(eventParsed, event);
+});
+
+test('@JsonFormat of date at parsing at property level with another format', t => {
+  class Event {
+    @JsonProperty()
+    @JsonFormat({
+      shape: JsonFormatShape.STRING,
+      pattern: 'DD/MM/YYYY hh:mm:ss',
+    })
+    @JsonClassType({type: () => [Date]})
+    startDate: Date;
+
+    // eslint-disable-next-line no-shadow
+    constructor(startDate: Date) {
+      this.startDate = startDate;
+    }
+  }
+  const startDate = new Date('2020-03-24 10:00:00');
+  const event = new Event(startDate);
+
+  const objectMapper = new ObjectMapper();
+
+  const jsonData = objectMapper.stringify<Event>(event, {
+    dateLibrary: moment
+  });
+  // eslint-disable-next-line max-len
+  t.deepEqual(JSON.parse(jsonData), JSON.parse('{"startDate":"24/03/2020 10:00:00"}'));
+
+
+  const eventParsed = objectMapper.parse<Event>(jsonData, {mainCreator: () => [Event],
+    deserializers: [
+      {
+        type: () => Date,
+        order: 0,
+        mapper: (key, value: {dateWrapper: number}) => moment(value, 'DD/MM/YYYY hh:mm:ss').toDate()
+      }
+    ]
+  });
+
+  t.assert(eventParsed instanceof Event);
+  t.deepEqual(eventParsed, event);
+});
+
 test('@JsonFormat at method level', t => {
   class Event {
     @JsonProperty() @JsonClassType({type: () => [String]})
