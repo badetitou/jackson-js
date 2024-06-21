@@ -6,6 +6,8 @@ import {ObjectMapper} from '../src/databind/ObjectMapper';
 import {JsonProperty} from '../src/decorators/JsonProperty';
 import { URL } from 'url';
 
+const moment = require('moment');
+
 test('@JsonSerialize and @JsonDeserialize at class level', t => {
   // eslint-disable-next-line no-shadow
   @JsonSerialize({using: (user: User, context) => ({
@@ -545,4 +547,47 @@ test('@JsonSerialize and @JsonDeserialize at property level with contentUsing an
   t.is(writerParsed.books[0].name, 'Game Of Thrones');
   t.deepEqual(writerParsed.books[0].date, new Date(Date.UTC(2012, 11, 4)));
   t.is(writerParsed.books[0].writer, null);
+});
+
+
+test('Custom serializers and deserializers for Date', t => {
+  class Event {
+    @JsonProperty()
+    @JsonClassType({type: () => [Date]})
+    startDate: Date;
+
+    // eslint-disable-next-line no-shadow
+    constructor(startDate: Date) {
+      this.startDate = startDate;
+    }
+  }
+
+  const startDate = new Date('2020-03-24 10:00:00');
+  const event = new Event(startDate);
+  const objectMapper = new ObjectMapper();
+  const formatDate = 'DD/MM/YYYY hh:mm:ss';
+
+  objectMapper.defaultStringifierContext.serializers.push({
+    mapper: (key, value: Date, context) => {
+      if (value != null) {
+        return moment(value).format(formatDate);
+      }
+      return value;
+    },
+    type: () => Date
+  });
+
+  objectMapper.defaultParserContext.deserializers.push({
+    type: () => Date,
+    order: 0,
+    mapper: (key, value: {dateWrapper: number}) => moment(value, formatDate).toDate()
+  });
+
+  const jsonData = objectMapper.stringify<Event>(event);
+
+  t.deepEqual(JSON.parse(jsonData), JSON.parse('{"startDate":"24/03/2020 10:00:00"}'));
+  const eventParsed = objectMapper.parse<Event>(jsonData, {mainCreator: () => [Event]});
+  t.assert(eventParsed instanceof Event);
+  t.deepEqual(eventParsed, event);
+
 });
