@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.0 - bug minimization
+
+- tentative fix of an issue with recent Angular version and code optimization
+
 ## 1.4.7 - Optimize code
 
 - Add cache more or less for every call to `getMetadata` in JsonParser
