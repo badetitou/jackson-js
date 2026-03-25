@@ -29,21 +29,21 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
         with:
-          node-version: '16.x'
+          node-version: 24
           registry-url: 'https://registry.npmjs.org'
       - run: npm ci
       - run: npm run build:doc
       - name: Setup Pages
         uses: actions/configure-pages@v3
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v1
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v7.0.0
         with:
           # Upload entire repository
           path: './docs'
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
+
