@@ -1,6 +1,6 @@
 {
   "name": "@badetitou/jackson-js",
-  "version": "1.4.9",
+  "version": "1.5.0",
   "description": "JavaScript object serialization and deserialization library using decorators. It supports also advanced Object concepts such as polymorphism, Object identity and cyclic objects.",
   "author": {
     "name": "Benoît Verhaeghe",
