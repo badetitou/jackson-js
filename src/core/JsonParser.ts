@@ -11,6 +11,7 @@ import {
   getMetadata,
   getMetadataKeys,
   hasBigInt,
+  isClass,
   isClassIterable,
   isConstructorPrimitiveType,
   isIterableNoMapNoString,
@@ -1317,7 +1318,7 @@ export class JsonParser<T> {
     for (let i = 0; i < mainCreator.length; i++) {
       const ctor = mainCreator[i];
       if (!(ctor instanceof Array)) {
-        if (!ctor.name && typeof ctor === 'function') {
+        if (typeof ctor === 'function' && !isClass(ctor)) {
           const decoratorsToBeApplied = {
             depth: 1
           };
