@@ -25,7 +25,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/badetitou/jackson-js"
+    "url": "git+https://github.com/badetitou/jackson-js.git"
   },
   "scripts": {
     "clean": "rimraf ./dist",
